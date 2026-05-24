@@ -1,30 +1,32 @@
-import './App.css'
+import React from 'react';
+import Navbar from './components/Navbar';
+import BmiKalkulator from './components/BmiKalkulator'
 
 function App() {
 
 
   return (
-    <section className="section">
-      <div className="container">
-        {/* Bulma koristi klase za boju teksta poput has-text-primary */}
-        <h1 className="title has-text-primary has-text-centered">
-          Zdravstveni Pratitelj 🩺
-        </h1>
-        <p className="subtitle has-text-centered">
-          Aplikacija uspješno koristi Vite + React + Bulma!
-        </p>
+    <div>
+      {/*Navbar*/}
+      <Navbar />
 
-        {/* Test Bulma gumba */}
-        <div className="buttons is-centered">
-          <button className="button is-success is-rounded">
-            Dodaj aktivnosti
-          </button>
-          <button className="button is-link is-light">
-            Pregledaj grafove
-          </button>
+      {/*Ovdje idu komponente*/}
+      <section className='section'>
+        <div className='container'>
+          <div className='notification is-info is-light'>
+            <h2 className='title is-4'>Dobrodošli u svoj razvojni dnevnik</h2>
+            <p>Navbar iznad je tvoja prva samostalna komponeta. Polako gradimo dalje.</p>
+          </div>
+          {/*BMI kalkulator*/}
+          <div className='columns is-centered'>
+            <div className='column is-half'>
+              <BmiKalkulator />
+            </div>
+          </div>
+
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 }
 

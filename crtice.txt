@@ -5,3 +5,5 @@ npm install
 
 npm install bulma
 
+
+cilj: BMI odrednice, mjesećeve mijenje i dijeta s tim, količina vode po masi, kretanje ili sjedenje, pračenje kretanja, doba godine, sunce i vitamin d, prijelazna razdoblja prolječe i vitamin c; klimatski uvijeti
