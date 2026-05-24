@@ -1,0 +1,7 @@
+instalirano:
+
+npm create vite@latest .
+npm install
+
+npm install bulma
+
