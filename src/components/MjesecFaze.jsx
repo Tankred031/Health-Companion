@@ -9,9 +9,9 @@ function MoonPhaseDiet() {
   // --- STANJA ZA KRETANJE MJESECA PO NEBU ---
   const [moonAltitude, setMoonAltitude] = useState(15);
   const [moonAzimuth, setMoonAzimuth] = useState(90);
-  const [moonDirectionText, setMoonDirectionText] = useState('Istočni horizont (Mjesec se penje) 📈');
+  const [moonDirectionText, setMoonDirectionText] = useState('Istočni horizont (Mjesec se penje)');
 
-  // Podaci o fazama za prehranu
+  // Podaci o fazama za prehranu (Uklonjene ikone iz tekstova)
   const phaseData = {
     'new-moon': {
       title: 'Mlađak (Novi Mjesec)',
@@ -64,7 +64,7 @@ function MoonPhaseDiet() {
       barColor: 'is-info',
       statusClass: 'has-text-info-dark',
       options: [
-        'Vrijeme za umjereno uživanje: Ako planirate "grešni obrok", ovo je najsigurnija faza.',
+        'Vrijeme za umjereno uživanje: Ako planirate veći obrok, ovo je najsigurnija faza.',
         'Pojačajte kretanje: Iskoristite val prirodne energije za intenzivniji trening ili brzu šetnju.',
         'Smanjite ugljikohidrate: Tijelo sada lakše troši masne zalihe ako mu ne dajete višak šećera.'
       ]
@@ -73,7 +73,7 @@ function MoonPhaseDiet() {
 
   const currentData = phaseData[phase];
 
-  // --- NOVI EFEKT: RAČUNANJE STVARNE FAZE I ZODIJAKA NA TEMELJU DATUMA ---
+  // --- EFEKT: RAČUNANJE STVARNE FAZE I ZODIJAKA NA TEMELJU DATUMA ---
   useEffect(() => {
     const calculateMoonSpecs = () => {
       const date = new Date();
@@ -81,53 +81,49 @@ function MoonPhaseDiet() {
       const month = date.getMonth() + 1;
       const day = date.getDate();
 
-      // 1. Izračun približne starosti Mjeseca (Epakta metoda)
       const c = 365.25 * year;
       const e = 30.6 * month;
-      const jd = c + e + day - 694039.09; // Julijanski dani od referentne točke
-      const cycles = jd / 29.530588853;  // Duljina sinodičkog mjeseca
+      const jd = c + e + day - 694039.09;
+      const cycles = jd / 29.530588853;
       const age = (cycles - Math.floor(cycles)) * 29.530588853;
 
-      // Određivanje trenutne faze i sinkronizacija s kalkulatorom
       let determinedPhaseKey = 'new-moon';
-      let phaseText = 'Mlađak (Novi Mjesec) 🌑';
+      let phaseText = 'Mlađak (Novi Mjesec)';
 
       if (age >= 1.5 && age < 13.5) {
         determinedPhaseKey = 'waxing';
-        phaseText = 'Mjesec u rastu 🌒';
+        phaseText = 'Mjesec u rastu';
       } else if (age >= 13.5 && age < 16.5) {
         determinedPhaseKey = 'full-moon';
-        phaseText = 'Uštap (Pun Mjesec) 🌕';
+        phaseText = 'Uštap (Pun Mjesec)';
       } else if (age >= 16.5 && age < 28.0) {
         determinedPhaseKey = 'waning';
-        phaseText = 'Mjesec u padu 🌘';
+        phaseText = 'Mjesec u padu';
       }
 
       setLivePhaseName(phaseText);
-      setPhase(determinedPhaseKey); // Automatski postavlja formu na stvarno stanje
+      setPhase(determinedPhaseKey);
 
-      // 2. Izračun tropskog zodijaka Mjeseca
-      // Mjesec obiđe zodijak za ~27.32 dana (Siderički mjesec)
       const sidericCycles = jd / 27.321661;
       const zodiacProgress = (sidericCycles - Math.floor(sidericCycles)) * 360;
 
       const zodiacSigns = [
-        { name: 'Ovan ♈', min: 0, max: 30 },
-        { name: 'Bik ♉', min: 30, max: 60 },
-        { name: 'Blizanci ♊', min: 60, max: 90 },
-        { name: 'Rak ♋', min: 90, max: 120 },
-        { name: 'Lav ♌', min: 120, max: 150 },
-        { name: 'Djevica ♍', min: 150, max: 180 },
-        { name: 'Vaga ♎', min: 180, max: 210 },
-        { name: 'Škorpion ♏', min: 210, max: 240 },
-        { name: 'Strijelac ♐', min: 240, max: 270 },
-        { name: 'Jarac ♑', min: 270, max: 300 },
-        { name: 'Vodenjak ♒', min: 300, max: 330 },
-        { name: 'Ribe ♓', min: 330, max: 360 }
+        { name: 'Ovan', min: 0, max: 30 },
+        { name: 'Bik', min: 30, max: 60 },
+        { name: 'Blizanci', min: 60, max: 90 },
+        { name: 'Rak', min: 90, max: 120 },
+        { name: 'Lav', min: 120, max: 150 },
+        { name: 'Djevica', min: 150, max: 180 },
+        { name: 'Vaga', min: 180, max: 210 },
+        { name: 'Škorpion', min: 210, max: 240 },
+        { name: 'Strijelac', min: 240, max: 270 },
+        { name: 'Jarac', min: 270, max: 300 },
+        { name: 'Vodenjak', min: 300, max: 330 },
+        { name: 'Ribe', min: 330, max: 360 }
       ];
 
       const currentSign = zodiacSigns.find(sign => zodiacProgress >= sign.min && zodiacProgress < sign.max);
-      setLiveZodiac(currentSign ? currentSign.name : 'Ovan ♈');
+      setLiveZodiac(currentSign ? currentSign.name : 'Ovan');
     };
 
     calculateMoonSpecs();
@@ -144,9 +140,9 @@ function MoonPhaseDiet() {
         const currentAlt = Math.max(0, Math.floor(50 - (angleFromSouth * 0.5)));
         setMoonAltitude(currentAlt);
 
-        if (nextAz >= 90 && nextAz < 135) setMoonDirectionText('Istočni horizont (Mjesec se penje) 📈');
-        else if (nextAz >= 135 && nextAz < 225) setMoonDirectionText('Južno nebo (Mjesec je u najvišoj točki) 🌌');
-        else if (nextAz >= 225 && nextAz <= 270) setMoonDirectionText('Zapadni horizont (Mjesec zalazi) 📉');
+        if (nextAz >= 90 && nextAz < 135) setMoonDirectionText('Istočni horizont (Mjesec se penje)');
+        else if (nextAz >= 135 && nextAz < 225) setMoonDirectionText('Južno nebo (Mjesec je u najvišoj točki)');
+        else if (nextAz >= 225 && nextAz <= 270) setMoonDirectionText('Zapadni horizont (Mjesec zalazi)');
 
         return nextAz;
       });
@@ -159,8 +155,8 @@ function MoonPhaseDiet() {
     <div className="card">
       <div className="card-content">
 
-        {/* ================= NOVI BLOK: STVARNO STANJE NA DANAŠNJI DAN ================= */}
-        <h3 className="title is-4 has-text-info mb-3">📅 Stvarno stanje na današnji dan</h3>
+        {/* ================= BLOK: STVARNO STANJE NA DANAŠNJI DAN ================= */}
+        <h3 className="title is-4 has-text-info mb-3">Stvarno stanje na današnji dan</h3>
         <div className="columns is-mobile">
           <div className="column is-half">
             <div className="box has-background-dark has-text-centered p-3" style={{ border: '1px solid #209cee' }}>
@@ -179,7 +175,7 @@ function MoonPhaseDiet() {
         <hr className="my-4" />
 
         {/* ================= DIO 1: KRETANJE PO NEBU ================= */}
-        <h3 className="title is-4 has-text-primary mb-3">🌌 Kretanje Mjeseca iznad Osijeka</h3>
+        <h3 className="title is-4 has-text-primary mb-3">Kretanje Mjeseca iznad Osijeka</h3>
         <div className="notification is-dark mb-5" style={{ background: '#0e1118', borderRadius: '8px' }}>
           <p className="is-size-6">
             Trenutna pozicija na nebu: <strong className="has-text-info">{moonDirectionText}</strong>
@@ -207,25 +203,25 @@ function MoonPhaseDiet() {
         <hr />
 
         {/* ================= DIO 2: UTJECAJ NA PREHRANU & ANIMACIJA ================= */}
-        <h3 className="title is-4 has-text-success">🌙 Utjecaj Mjesečevih Mijena na Prehranu</h3>
+        <h3 className="title is-4 has-text-success">Utjecaj Mjesečevih Mijena na Prehranu</h3>
 
         <div className="field">
-          <label className="label">Istražite utjecaj i ostalih faza:</label>
+          <label className="label is-size-6">Istražite utjecaj i ostalih faza:</label>
           <div className="control">
-            <div className="select is-fullwidth is-success">
+            <div className="select is-fullwidth is-medium">
               <select value={phase} onChange={(e) => setPhase(e.target.value)}>
-                <option value="new-moon">Mlađak (Novi Mjesec) 🌑</option>
-                <option value="waxing">Mjesec u rastu (Do punog) 🌒</option>
-                <option value="full-moon">Uštap (Pun Mjesec) 🌕</option>
-                <option value="waning">Mjesec u padu (Do mlađaka) 🌘</option>
+                <option value="new-moon">Mlađak (Novi Mjesec)</option>
+                <option value="waxing">Mjesec u rastu (Do punog)</option>
+                <option value="full-moon">Uštap (Pun Mjesec)</option>
+                <option value="waning">Mjesec u padu (Do mlađaka)</option>
               </select>
             </div>
           </div>
         </div>
 
-                {/* Animirani prikaz odabrane faze */}
+        {/* Animirani prikaz odabrane faze */}
         <div className="has-text-centered my-5 p-5" style={{ background: '#0e1118', borderRadius: '8px' }}>
-          <div 
+          <div
             className="moon-glow-container"
             style={{
               display: 'inline-block',
@@ -236,37 +232,45 @@ function MoonPhaseDiet() {
               animation: 'pulseGlow 3s infinite ease-in-out'
             }}
           >
-            {/* Ovdje prikazujemo SAMO veliku ikonu Mjeseca */}
-            <span style={{ fontSize: '5rem', display: 'block', lineHeight: '1' }}>
-              {currentData.icon}
-            </span>
+            {/* Ovdje se drži isključivo velika astro ikona kruga Mjeseca */}
+            <span style={{ fontSize: '5rem', display: 'block', lineHeight: '1' }}>{currentData.icon}</span>
           </div>
-          {/* Naslov faze ispod ikone */}
-          <h4 className="title is-4 has-text-white mt-3 mb-0">{currentData.title}</h4>
-        </div>
+          {/* NASLOV */}
+          <h4 className="title is-4 has-text-white mt-3 mb-2">
+            {currentData.title}
+          </h4>
 
-        {/* Analiza apetita izvučena van tamnog bloka radi preglednosti i urednog Bulma dizajna */}
-        <div className="notification is-light is-success mt-4">
-          <p className="is-size-6 mb-3">
-            Razina gladi: <strong className={currentData.statusClass}>{currentData.appetite}</strong>
+          {/* GLAD */}
+          <p className="is-size-6 has-text-light mb-2">
+            Razina gladi: <strong>{currentData.appetite}</strong>
           </p>
 
-          <p className="is-size-7 has-text-weight-bold mb-1">Potencijal za zadržavanje kalorija i glad:</p>
-          <progress className={`progress ${currentData.barColor}`} value={currentData.barValue} max="100">
+          {/* PROGRESS */}
+          <p className="is-size-7 has-text-weight-bold mb-1">
+            Potencijal za zadržavanje kalorija i glad:
+          </p>
+
+          <progress
+            className={`progress ${currentData.barColor}`}
+            value={currentData.barValue}
+            max="100"
+          >
             {currentData.barValue}%
           </progress>
 
-          <div className="content mt-4">
-            <p className="has-text-weight-bold mb-2">Što raditi danas? (Vaše opcije):</p>
-            <ul>
-              {/* Popravljen .map() — sada ispravno renderira listu (li) elemenata */}
-              {currentData.options.map((option, index) => (
-                <li key={index} className="is-size-6">{option}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
+          {/* OPCIJE */}
+          <p className="has-text-white has-text-weight-bold mt-4 mb-2">
+            Preporučene opcije za danas:
+          </p>
 
+          <ul>
+            {currentData.options.map((option, index) => (
+              <li key={index} className="has-text-light is-size-6">
+                {option}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );

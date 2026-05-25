@@ -18,3 +18,22 @@ html {
     filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.1));
   }
 }
+
+/* Efekt za cijelu karticu na početnoj stranici */
+.custom-hover-card:hover {
+  /* Ako su ti kartice na početnoj svijetle, ostavi #f8f9fa, a ako su tamne, promijeni u #1f2435 */
+  background-color: #1f2435 !important; 
+  transform: translateY(-5px);           /* Lagano podizanje kartice prema gore */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important; /* Naglašenija dublja sjena za 3D efekt */
+  border: 1px solid #48c78e !important;  /* Promijenjeno u zeleni Bulma rub da prati stil aplikacije */
+}
+
+/* Osiguravamo krupniji tekst unutar kartica */
+.custom-hover-card p {
+  font-weight: 500;
+}
+
+/* Glatki prijelaz za povratak kartice u početno stanje kad makneš prst/miš */
+.custom-hover-card {
+  transition: all 0.3s ease-in-out !important;
+}
