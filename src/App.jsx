@@ -1,33 +1,56 @@
 import React from 'react';
-import Navbar from './components/Navbar';
-import BmiKalkulator from './components/BmiKalkulator'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Izbornik';
+import BmiKalkulator from './components/BmiKalkulator';
+import MoonPhaseDiet from './components/MjesecFaze';
+import MovementTracker from './components/KretanjeTracker';
+import PrirodniUvjeti from './components/PrirodniUvjeti';
 
 function App() {
-
-
   return (
-    <div>
-      {/*Navbar*/}
-      <Navbar />
+    <Router>
+      {/* Glavni omotač postavlja flexbox kako bi footer uvijek bio na dnu ekrana */}
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
 
-      {/*Ovdje idu komponente*/}
-      <section className='section'>
-        <div className='container'>
-          <div className='notification is-info is-light'>
-            <h2 className='title is-4'>Dobrodošli u svoj razvojni dnevnik</h2>
-            <p>Navbar iznad je tvoja prva samostalna komponeta. Polako gradimo dalje.</p>
-          </div>
-          {/*BMI kalkulator*/}
-          <div className='columns is-centered'>
-            <div className='column is-half'>
-              <BmiKalkulator />
-            </div>
-          </div>
+        {/* Navbar je uvijek vidljiv na vrhu */}
+        <Navbar />
 
-        </div>
-      </section>
-    </div>
+        {/* Sadržaj stranice se širi i gura footer prema dolje */}
+        <section className='section' style={{ flex: '1' }}>
+          <div className='container'>
+            <Routes>
+              {/* Početna stranica */}
+              <Route path="/" element={
+                <div className='notification is-info is-light'>
+                  <h2 className='title is-4'>Dobrodošli u svoj razvojni dnevnik 🩺</h2>
+                  <p>Odaberite neku od opcija u navigaciji iznad kako biste otvorili zasebne alate.</p>
+                </div>
+              } />
+
+              <Route path="/kalkulatori" element={<BmiKalkulator />} />
+              <Route path="/priroda" element={<PrirodniUvjeti />} />
+              <Route path="/mjesec" element={<MoonPhaseDiet />} />
+              <Route path="/kretanje" element={<MovementTracker />} />
+            </Routes>
+          </div>
+        </section>
+
+        {/* --- POPRAVLJENI FOOTER SA ZELENOM POZADINOM, BIJELIM I COSKASTIM (ITALIC) SLOVIMA --- */}
+        <footer className="footer has-background-black py-5">
+          <div className="content has-text-centered">
+            <p className="is-size-7 has-text-white is-italic">
+              <strong>Health Companion</strong> &copy; {new Date().getFullYear()} &middot; Sva prava pridržana.
+            </p>
+            <p className="is-size-7 has-text-white-ter is-italic">
+              Izrađeno s React-om i Bulma CSS-om u razvojnom dnevniku.
+            </p>
+          </div>
+        </footer>
+        {/* --------------------------------------------------------------------------------- */}
+
+      </div>
+    </Router>
   );
 }
 
-export default App
+export default App;

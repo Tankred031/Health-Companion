@@ -1,20 +1,18 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom'; // 1. Uvozimo Link komponentu
 
 function Navbar() {
     const [isActive, setIsActive] = useState(false);
 
-
-
     return (
-        <nav className='navbar is-link' role='navigation' aria-label='main navigation'>
+        <nav className='navbar is-primary is-light' role='navigation' aria-label='main navigation'>
             <div className='navbar-brand'>
-
-                {/* Logtip aplikacije*/}
-                <a className='navbar-item' href="/">
+                {/* Logotip vodi na početnu stranicu (/) */}
+                <Link className='navbar-item' to="/">
                     <strong className='is-size-4'>🩺 Health Companion</strong>
-                </a>
+                </Link>
 
-                {/* Hamburger gumb za mobitele*/}
+                {/* Hamburger gumb za mobitele */}
                 <button
                     className={`navbar-burger burger ${isActive ? 'is-active' : ''}`}
                     aria-label='menu'
@@ -27,12 +25,13 @@ function Navbar() {
                 </button>
             </div>
 
-            {/* Stavke izbornika - klasični Bulma navbar*/}
+            {/* Stavke izbornika - zamijenili smo 'href' s 'to' i 'a' s 'Link' */}
             <div className={`navbar-menu ${isActive ? 'is-active' : ''}`}>
                 <div className='navbar-start'>
-                    <a className='navbar-item' href="#kalkulatori">Kalkulatori</a>
-                    <a className='navbar-item' href="#priroda">Prirodni uvijeti</a>
-                    <a className='navbar-item' href="#kretanje">Kretanje</a>
+                    <Link className='navbar-item' to="/kalkulatori" onClick={() => setIsActive(false)}>Kalkulatori</Link>
+                    <Link className='navbar-item' to="/priroda" onClick={() => setIsActive(false)}>Prirodni uvjeti</Link>
+                    <Link className='navbar-item' to="/mjesec" onClick={() => setIsActive(false)}>Mjesečeve mijene</Link>
+                    <Link className='navbar-item' to="/kretanje" onClick={() => setIsActive(false)}>Kretanje</Link>
                 </div>
 
                 <div className='navbar-end'>
@@ -44,11 +43,7 @@ function Navbar() {
                 </div>
             </div>
         </nav>
-
-
-
-
-    )
+    );
 }
 
 export default Navbar;

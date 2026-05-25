@@ -4,6 +4,6 @@ npm create vite@latest .
 npm install
 
 npm install bulma
+npm install react-router-dom
 
-
-cilj: BMI odrednice, mjesećeve mijenje i dijeta s tim, količina vode po masi, kretanje ili sjedenje, pračenje kretanja, doba godine, sunce i vitamin d, prijelazna razdoblja prolječe i vitamin c; klimatski uvijeti
+cilj: BMI odrednice, mjesečeve mjene i dijeta s tim, količina vode po masi, kretanje ili sjedenje, pračenje kretanja, doba godine, sunce i vitamin d, prijelazna razdoblja prolječe i vitamin c; klimatski uvijeti
