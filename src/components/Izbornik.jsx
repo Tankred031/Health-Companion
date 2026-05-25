@@ -48,6 +48,7 @@ function Navbar() {
                     <Link className='navbar-item' to={RouteNames.PRIRODA} onClick={() => setIsActive(false)}>Prirodni uvjeti</Link>
                     <Link className='navbar-item' to={RouteNames.MJESEC} onClick={() => setIsActive(false)}>Mjesečeve mijene</Link>
                     <Link className='navbar-item' to={RouteNames.KRETANJE} onClick={() => setIsActive(false)}>Kretanje</Link>
+                    <Link className='navbar-item' to={RouteNames.PRACENJE} onClick={() => setIsActive(false)}>Praćenje rezultata</Link>
                 </div>
 
                 {/* --- DESNA STRANA: SWITCHER ZA IZVOR PODATAKA --- */}

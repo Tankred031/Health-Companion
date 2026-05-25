@@ -7,6 +7,7 @@ import MoonPhaseDiet from './components/MjesecFaze';
 import MovementTracker from './components/KretanjeTracker';
 import PrirodniUvjeti from './components/PrirodniUvjeti';
 import { RouteNames } from '../constants';
+import StatisticTracking from "./pages/StatistickoKretanje";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
               <Route path={RouteNames.PRIRODA} element={<PrirodniUvjeti />} />
               <Route path={RouteNames.MJESEC} element={<MoonPhaseDiet />} />
               <Route path={RouteNames.KRETANJE} element={<MovementTracker />} />
+              <Route path={RouteNames.PRACENJE} element={<StatisticTracking />} />
             </Routes>
           </div>
         </section>

@@ -6,5 +6,6 @@ export const RouteNames = {
     KALKULATORI: '/kalkulatori',
     PRIRODA: '/priroda',
     MJESEC: '/mjesec',
-    KRETANJE: '/kretanje'
+    KRETANJE: '/kretanje',
+    PRACENJE: '/pracenje'
 };
