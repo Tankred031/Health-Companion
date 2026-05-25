@@ -1,36 +1,64 @@
 import React, { useState, useEffect } from 'react';
 
 function PrirodniUvjeti() {
-  // Automatski hvatamo trenutni mjesec u godini (0 = Siječanj, 11 = Prosinac)
   const currentMonth = new Date().getMonth();
   
-  // Stanja za sezonske podatke
   const [season, setSeason] = useState('');
-  const [waterRecommendation, setWaterRecommendation] = useState('');
-  const [vitaminDRecommendation, setVitaminDRecommendation] = useState('');
+  const [waterText, setWaterText] = useState('');
+  const [waterAmount, setWaterAmount] = useState('');
+  const [vitaminDText, setVitaminDText] = useState('');
+  const [vitaminDAmount, setVitaminDAmount] = useState('');
   const [seasonClass, setSeasonClass] = useState('is-info');
 
   useEffect(() => {
-    // Logika kalendara: Travanj (3) do Rujan (8) je ljetni režim, ostalo zimski
-    if (currentMonth >= 3 && currentMonth <= 8) {
+    const savedWeight = localStorage.getItem('userWeight');
+    const isSummer = currentMonth >= 3 && currentMonth <= 8;
+
+        if (isSummer) {
       setSeason('Ljetno razdoblje ☀️');
       setSeasonClass('is-warning is-light');
-      setWaterRecommendation(
-        'Zbog visokih temperatura i pojačanog znojenja, tijelo ubrzano gubi tekućinu. Preporučuje se povećan unos vode.'
-      );
-      setVitaminDRecommendation(
-        'Izloženost suncu je visoka. Tijelo prirodno sintetizira Vitamin D. Preporučuje se obratiti pozornost na adekvatan unos, osim ako provodite cijeli dan u zatvorenom prostoru. (Napomena: Doza će se kasnije preciznije prilagoditi vašem BMI-ju).'
-      );
+      
+      if (savedWeight) {
+        const liters = ((savedWeight * 45) / 1000).toFixed(1);
+        setWaterAmount(`${liters} Litara dnevno`);
+        setWaterText(`Zbog ljetnih vrućina i pojačanog znojenja, tvoja formula unosa je podignuta na 45 ml po kilogramu za tvojih ${savedWeight} kg.`);
+      } else {
+        setWaterAmount('Oko 2.5 - 3.0 Litre');
+        setWaterText('Ljeti je potreban pojačan unos vode. Unesi podatke u BMI kalkulator za točan izračun prema tvojoj masi.');
+      }
+
+      // POPRAVLJENO: Strogo samo 400 IJ
+      setVitaminDAmount('400 IJ — Ljetni minimum');
+      setVitaminDText('Koža ljeti sama stvara Vitamin D na suncu, stoga je dodatni unos spušten na preporučeni zdravstveni minimum.');
+      
     } else {
       setSeason('Zimsko razdoblje ❄️');
       setSeasonClass('is-info is-light');
-      setWaterRecommendation(
-        'Zimi rjeđe osjećamo žeđ, ali tijelo i dalje gubi vodu disanjem i kroz grijane prostore. Preporučuje se prilagođen unos vode.'
-      );
-      setVitaminDRecommendation(
-        'Snažno smanjena sunčeva svjetlost. Sinteza kroz kožu je minimalna. Preporučuje se razmatranje suplementacije za održavanje imuniteta i zdravlja kostiju. (Napomena: Osobe s povišenim BMI-jem u pravilu imaju drugačije potrebe jer se Vitamin D zadržava u masnom tkivu).'
-      );
+      
+      if (savedWeight) {
+        const liters = ((savedWeight * 35) / 1000).toFixed(1);
+        setWaterAmount(`${liters} Litara dnevno`);
+        setWaterText(`Zimi rjeđe osjećamo žeđ, ali tijelo i dalje gubi tekućinu kroz grijane prostore. Tvoja zimska formula iznosi 35 ml po kilogramu mase.`);
+      } else {
+        setWaterAmount('Oko 2.0 Litre');
+        setWaterText('Zimska opća preporuka za bazičnu hidrataciju odraslih osoba.');
+      }
+
+      if (savedWeight) {
+        let optimalD_IU = Math.round(savedWeight * 50);
+        if (optimalD_IU < 1000) optimalD_IU = 1000;
+        if (optimalD_IU > 5000) optimalD_IU = 5000;
+
+        // POPRAVLJENO: Maknuti mikrogrami, ostaje samo IJ
+        setVitaminDAmount(`${optimalD_IU} IJ — Prilagođeno tvojoj težini`);
+        setVitaminDText(`Zimi je sunce preslabo. S obzirom na tvojih ${savedWeight} kg mase, ovo je optimalna zimska doza za tvoja tkiva.`);
+      } else {
+        // POPRAVLJENO: Maknuti mikrogrami
+        setVitaminDAmount('800 IJ — Standardna doza');
+        setVitaminDText('Zimska opća preporuka. Za personalizirani izračun unesi podatke u BMI Kalkulator.');
+      }
     }
+
   }, [currentMonth]);
 
   return (
@@ -38,33 +66,30 @@ function PrirodniUvjeti() {
       <div className="card-content">
         <h3 className="title is-4 has-text-success">Prirodni Uvjeti & Sezonski Vodič</h3>
 
-        {/* Indikator godišnjeg doba na temelju kalendara */}
         <div className={`notification ${seasonClass} has-text-centered`}>
-          <p className="is-size-5">
-            Kalendarski detektirano: <strong>{season}</strong>
-          </p>
+          <p className="is-size-5">Kalendarski detektirano: <strong>{season}</strong></p>
         </div>
 
-        {/* Preporuka za vodu */}
+        {/* Voda */}
         <div className="box">
           <h4 className="title is-5 has-text-link mb-2">💧 Hidratacija (Unos vode)</h4>
-          <p className="is-size-6">{waterRecommendation}</p>
-          <div className="message is-small is-link mt-3">
-            <div className="message-body">
-              <strong>Savjet:</strong> Nemojte čekati osjećaj žeđi. Pijte vodu u malim gutljajima tijekom cijelog dana.
-            </div>
+          <div className="notification is-info is-light py-2 px-3 mb-2">
+            <p className="is-size-5 map-water-text has-text-link-dark has-text-weight-bold">{waterAmount}</p>
           </div>
+          <p className="is-size-6">{waterText}</p>
         </div>
 
-        {/* Preporuka za Vitamin D */}
-        <div className="box">
-          <h4 className="title is-5 has-text-warning mb-2">☀️ Vitamin D3 Preporuka</h4>
-          <p className="is-size-6">{vitaminDRecommendation}</p>
+        {/* Vitamin D (Sada u potpunosti usklađen s kalkulatorom — samo IJ) */}
+        <div className="box has-background-dark">
+          <h4 className="title is-5 has-text-warning mb-2">☀️ Personalizirana Vitamin D3 Preporuka</h4>
+          <div className="notification is-dark py-2 px-3 mb-2" style={{ background: '#1c1f2b' }}>
+            <p className="is-size-5 has-text-warning has-text-weight-bold">{vitaminDAmount}</p>
+          </div>
+          <p className="is-size-6 has-text-white">{vitaminDText}</p>
           
-          {/* Najava buduće veze s BMI-jem */}
-          <div className="notification is-warning is-light mt-3 is-size-7">
-            <p>
-              <strong>🧬 BMI najava:</strong> Budući da je Vitamin D topiv u mastima, kod povišene tjelesne težine (BMI &gt; 25) tkiva ga brže "upijaju", pa je u zimskim mjesecima često potrebna prilagodba doze. Ovu funkciju ćemo automatizirati čim uneseš podatke u BMI kalkulator!
+          <div className="mt-4 pt-3" style={{ borderTop: '1px dashed #555' }}>
+            <p className="is-size-7 has-text-grey-light is-italic">
+              <strong>Napomena:</strong> Prikazane preporuke za dnevni unos tekućine i dodataka prehrani izražene u internacionalnim jedinicama (IJ) služe isključivo u informativne svrhe i ne predstavljaju medicinski savjet ili terapiju.
             </p>
           </div>
         </div>
