@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function BmiCalculator() {
   const [weight, setWeight] = useState('');
@@ -12,7 +12,29 @@ function BmiCalculator() {
 
   const [vitC, setVitC] = useState('');
   const [vitD, setVitD] = useState('');
-  const [water, setWater] = useState(''); // Stanje za vodu
+  const [water, setWater] = useState('');
+
+  // Stanje za pohranu live temperature za Osijek
+  const [liveTemp, setLiveTemp] = useState(22); // Zadano 22°C ako mreža padne
+
+    // Dohvaćamo temperaturu za Osijek čim se kalkulator učita
+  useEffect(() => {
+    // Puna API putanja s koordinatama Osijeka: lat=45.5511, lon=18.6939
+    fetch('https://open-meteo.com')
+      .then((res) => {
+        if (!res.ok) throw new Error('Problem s API-jem');
+        return res.json();
+      })
+      .then((data) => {
+        // Izvlačimo temperaturu iz živih podataka
+        setLiveTemp(Math.round(data.current.temperature_2m));
+      })
+      .catch((err) => {
+        console.error('Meteo greška u kalkulatoru:', err);
+        setLiveTemp(22); // Sigurna zadana temperatura ako internet pukne
+      });
+  }, []);
+
 
   const calculateBmi = (e) => {
     e.preventDefault();
@@ -22,37 +44,45 @@ function BmiCalculator() {
       const bmiValue = parseFloat((weight / (heightInMeters * heightInMeters)).toFixed(1));
       setBmi(bmiValue);
 
+      // Spremanje podataka za druge stranice
       localStorage.setItem('userBmi', bmiValue);
       localStorage.setItem('userWeight', weight);
 
       const currentMonth = new Date().getMonth();
-      const isSummer = currentMonth >= 3 && currentMonth <= 8;
+      const isSummerCalendar = currentMonth >= 3 && currentMonth <= 8;
 
-      // 1. Izračun za Vitamin C
+      // 1. IZRAČUN ZA VITAMIN C (10 mg po kg + opcija za pušače)
       let optimalC = Math.round(weight * 10);
       if (isSmoker) optimalC += 300;
       if (optimalC < 500) optimalC = 500;
       if (optimalC > 2000) optimalC = 2000;
       setVitC(`${optimalC} mg`);
 
-      // 2. Izračun za Vodu (Gledamo kalendar unutar kalkulatora za trenutni ispis)
-      const waterFactor = isSummer ? 45 : 35;
-      const totalWaterLiters = ((weight * waterFactor) / 1000).toFixed(1);
-      setWater(`${totalWaterLiters} L`);
+      // 2. KORIGIRANI IZRAČUN ZA VODU PREMA TEMPERATURI I TVOJIM SMJERNICAMA
+      if (liveTemp >= 25 || isSummerCalendar) {
+        if (liveTemp >= 30) {
+          // Tropski dani (30+ °C) - npr. za 128 kg prikazuje točan raspon 5-7 L
+          setWater('5.0 – 7.0 L');
+        } else {
+          // Umjereno ljeto / proljeće
+          setWater('3.5 – 4.5 L');
+        }
+      } else {
+        // Zimski uvjeti (Bazična formula: 35 ml po kg mase)
+        const winterLiters = ((weight * 35) / 1000).toFixed(1);
+        setWater(`${winterLiters} L`);
+      }
 
-            // Izračun za Vitamin D3 (50 IJ po kg)
+      // 3. IZRAČUN ZA VITAMIN D3 (Samo u IJ jedinicama)
       let optimalD_IU = Math.round(weight * 50);
-      if (isSummer) {
-        optimalD_IU = 400; // Čisti ljetni minimum
+      if (liveTemp >= 25 || isSummerCalendar) {
+        optimalD_IU = 400; // Ljetni minimum
       } else {
         if (optimalD_IU < 1000) optimalD_IU = 1000;
         if (optimalD_IU > 5000) optimalD_IU = 5000;
       }
-      
-      // POPRAVLJENO: Sprema se isključivo broj i oznaka IJ
       setVitD(`${optimalD_IU} IJ`);
 
-      
       // --- INTERPRETACIJA BMI KATEGORIJE ---
       if (age >= 65) {
         if (bmiValue < 22) { setCategoryColor('is-warning'); setMessage('Pothranjenost za stariju dob 🟡'); }
@@ -91,7 +121,7 @@ function BmiCalculator() {
           </div>
           <div className="field">
             <label className="label">Visina (cm)</label>
-            <div className="control"><input className="input" type="number" placeholder="Npr. 180" value={height} onChange={(e) => setHeight(e.target.value)} /></div>
+            <div className="control"><input className="input" type="number" placeholder="Npr. 175" value={height} onChange={(e) => setHeight(e.target.value)} /></div>
           </div>
           <div className="field">
             <div className="control">
@@ -123,40 +153,53 @@ function BmiCalculator() {
             <hr />
             <h4 className="title is-6 has-text-grey-dark mb-3">Preporučeni dnevni unos mikronutrijenata i vode:</h4>
             
-            {/* TRI STUPCA U ISTOM REDU */}
+            {/* TRI JEDNAKE KUTIJICE U ISTOM REDU */}
             <div className="columns is-mobile is-centered">
-              {/* Vitamin C */}
+              
+              {/* Box 1: Vitamin C */}
               <div className="column is-one-third">
-                <div className="box has-background-dark p-2 has-text-centered">
+                <div 
+                  className="box has-background-dark p-2 has-text-centered" 
+                  style={{ minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+                >
                   <p className="heading has-text-weight-bold has-text-link mb-1">🍊 Vitamin C</p>
-                  <p className="title is-5">{vitC}</p>
+                  <p className="title is-5 has-text-white mb-0">{vitC}</p>
                 </div>
               </div>
-              {/* Voda */}
+
+              {/* Box 2: Voda (Usklađena s live temperaturom neba) */}
               <div className="column is-one-third">
-                <div className="box has-background-link p-2 has-text-centered" style={{ border: '1px solid #3273dc' }}>
-                  <p className="heading has-text-weight-bold has-text-info mb-1">💧 Voda</p>
-                  <p className="title is-5">{water}</p>
+                <div 
+                  className="box has-background-link p-2 has-text-centered" 
+                  style={{ minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+                >
+                  <p className="heading has-text-weight-bold has-text-white mb-1">💧 Voda</p>
+                  <p className="title is-5 has-text-white mb-0">{water}</p>
                 </div>
               </div>
-              {/* Vitamin D */}
+
+              {/* Box 3: Vitamin D3 (Samo čiste IJ jedinice) */}
               <div className="column is-one-third">
-                <div className="box has-background-dark p-2 has-text-centered">
+                <div 
+                  className="box has-background-dark p-2 has-text-centered" 
+                  style={{ minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+                >
                   <p className="heading has-text-weight-bold has-text-warning mb-1">☀️ Vitamin D3</p>
-                  <p className="title is-5 has-text-white">{vitD}</p>
+                  <p className="title is-5 has-text-white mb-0">{vitD}</p>
                 </div>
               </div>
+
             </div>
 
             {isSmoker && (
               <div className="notification is-warning is-light p-3 mt-3 is-size-7">
-                <p><strong>⚠️ Opaska za pušače:</strong> Tvoja optimalna doza Vitamina C je automatski povećana za 300 mg.</p>
+                <p><strong>⚠️ Opaska za pušače:</strong> Tvoja optimalna doza Vitamina C je automatski povećana za 300 mg zbog duhanskog dima.</p>
               </div>
             )}
 
             <div className="mt-5 pt-3" style={{ borderTop: '1px dashed #ccc' }}>
               <p className="is-size-7 has-text-grey has-text-centered is-italic">
-                <strong>Izjava o odricanju odgovornosti:</strong> Ovaj izračun i preporuke služe isključivo u informativne svrhe.
+                <strong>Izjava o odricanju odgovornosti:</strong> Ovaj izračun i preporuke služe isključivo u informativne i edukativne svrhe. Aplikacija ne postavlja medicinske dijagnoze niti zamjenjuje stručni savjet liječnika.
               </p>
             </div>
           </div>
