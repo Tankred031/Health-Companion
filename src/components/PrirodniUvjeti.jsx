@@ -44,7 +44,7 @@ function PrirodniUvjeti() {
 
     const savedWeight = localStorage.getItem('userWeight')
       ? parseFloat(localStorage.getItem('userWeight'))
-      : 128;
+      : 103;
 
     const currentMonth = new Date().getMonth();
     const isSummerCalendar = currentMonth >= 3 && currentMonth <= 8;
