@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { RouteNames } from '../../constants';
-import healthCompanionServiceLocalStorage from '/healthCompanionServiceLocalStorage';
+import healthCompanionServiceLocalStorage from '../services/healthCompanionServiceLocalStorage';
 
 function Navbar() {
     const [isActive, setIsActive] = useState(false);
@@ -9,7 +9,8 @@ function Navbar() {
 
     // Pri učitavanju provjeravamo koji je trenutni način rada u servisu
     useEffect(() => {
-        setSource(storageService.getTrenutniNacin());
+        const trenutniIzbor = localStorage.getItem('dataSource') || 'memorija';
+        setSource(trenutniIzbor);
     }, []);
 
     // Funkcija koja reagira na promjenu preklopnika
@@ -60,8 +61,8 @@ function Navbar() {
                                 <div className="control">
                                     <div className="select is-small is-rounded">
                                         <select value={source} onChange={handleSourceChange}>
-                                            <option value="memorija">Privremeni RAM 🧠</option>
-                                            <option value="local">LocalStorage 💾</option>
+                                            <option value="memorija">Memorija</option>
+                                            <option value="local">LocalStorage</option>
                                         </select>
                                     </div>
                                 </div>
