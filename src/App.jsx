@@ -1,12 +1,12 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Izbornik';
-import Home from './pages/Home'; 
+import Home from './pages/Home';
 import BmiKalkulator from './components/BmiKalkulator';
 import MoonPhaseDiet from './components/MjesecFaze';
 import MovementTracker from './components/KretanjeTracker';
 import PrirodniUvjeti from './components/PrirodniUvjeti';
-import { RouteNames } from '../constants'; 
+import { RouteNames } from '../constants';
 
 function App() {
   return (
@@ -35,6 +35,8 @@ function App() {
           <div className="content has-text-centered">
             <p className="is-size-7 has-text-white is-italic">
               <strong>Health Companion</strong> &copy; {new Date().getFullYear()} &middot; Sva prava pridržana.
+              <br />
+              Autor: Tankred Kralj
             </p>
             <p className="is-size-7 has-text-white-ter is-italic">
               Izrađeno s React-om i Bulma CSS-om u razvojnom dnevniku.
