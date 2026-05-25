@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 
 function MovementTracker() {
   // --- KORISNIČKI PODACI ---
-  const [userWeight, setUserWeight] = useState(128); // Zadano 128 kg prema tvom profilu
-
+  const [userWeight, setUserWeight] = useState(103); // Zadano 103 kg 
+  
   // --- SUSTAV 1: BAZIČNA DNEVNA AKTIVNOST (Preklopnik) ---
   const [baseActivity, setBaseActivity] = useState('office-pc'); // 'office-pc' ili 'housework'
   const [workHours, setWorkHours] = useState(8); // Za uredski rad
