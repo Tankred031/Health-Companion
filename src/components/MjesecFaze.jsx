@@ -25,6 +25,12 @@ function MoonPhaseDiet() {
         'Jednodnevni post (24h): Pijte samo vodu, nezaslađene čajeve i bistre juhe.',
         'Lagani meni: Ako ne postite, jedite isključivo svježe salate i juhu od povrća.',
         'Detoksikacija: Idealno vrijeme za izbacivanje toksina, izbjegavajte kavu i alkohol.'
+      ],
+
+      bodyRhythm: [
+        'Vrijeme za odmor i reset organizma.',
+        'Lagane šetnje i istezanje više odgovaraju tijelu.',
+        'Organizam bolje reagira na detoks i hidrataciju.'
       ]
     },
     'waxing': {
@@ -39,6 +45,12 @@ function MoonPhaseDiet() {
         'Kontrola porcija: Svjesno smanjite obroke jer se metabolizam blago usporava.',
         'Povećajte proteine: Meso, riba, jaja i mahunarke pružit će vam dulji osjećaj sitosti.',
         'Trik s vodom: Popijte veliku čašu vode 15 minuta prije obroka kako biste smanjili lažnu glad.'
+      ],
+
+      bodyRhythm: [
+        'Više energije za trening i dnevne aktivnosti.',
+        'Tijelo lakše podnosi intenzivnije napore.',
+        'Dobar period za razvoj novih navika.'
       ]
     },
     'full-moon': {
@@ -53,6 +65,12 @@ function MoonPhaseDiet() {
         'Tekući post: Pokrenite post točno u satu punog Mjeseca u trajanju od 24 sata.',
         'Potpuno izbacite sol: Sol u ove dane dodatno zaključava vodu u vašim tkivima.',
         'Čajevi za drenažu: Pijte čaj od koprive ili maslačka koji potiču izbacivanje viška tekućine.'
+      ],
+
+      bodyRhythm: [
+        'Moguć nemirniji san i jača emocionalna osjetljivost.',
+        'Pojačana potreba za tekućinom.',
+        'Preporučuje se smanjenje stresa i kasnih obroka.'
       ]
     },
     'waning': {
@@ -67,6 +85,12 @@ function MoonPhaseDiet() {
         'Vrijeme za umjereno uživanje: Ako planirate veći obrok, ovo je najsigurnija faza.',
         'Pojačajte kretanje: Iskoristite val prirodne energije za intenzivniji trening ili brzu šetnju.',
         'Smanjite ugljikohidrate: Tijelo sada lakše troši masne zalihe ako mu ne dajete višak šećera.'
+      ],
+
+      bodyRhythm: [
+        'Dobar period za regeneraciju i oporavak.',
+        'Tijelo učinkovitije troši energiju.',
+        'Povoljnije vrijeme za laganiji kalorijski deficit.'
       ]
     }
   };
@@ -74,82 +98,82 @@ function MoonPhaseDiet() {
   const currentData = phaseData[phase];
 
   // --- EFEKT: RAČUNANJE STVARNE FAZE I ZODIJAKA NA TEMELJU DATUMA ---
- useEffect(() => {
-  const calculateMoonSpecs = () => {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
+  useEffect(() => {
+    const calculateMoonSpecs = () => {
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
 
-    const c = 365.25 * year;
-    const e = 30.6 * month;
-    const jd = c + e + day - 694039.09;
+      const c = 365.25 * year;
+      const e = 30.6 * month;
+      const jd = c + e + day - 694039.09;
 
-    const cycles = jd / 29.530588853;
-    const age =
-      (cycles - Math.floor(cycles)) * 29.530588853;
+      const cycles = jd / 29.530588853;
+      const age =
+        (cycles - Math.floor(cycles)) * 29.530588853;
 
-    let determinedPhaseKey = 'new-moon';
-    let phaseText = 'Mlađak (Novi Mjesec)';
+      let determinedPhaseKey = 'new-moon';
+      let phaseText = 'Mlađak (Novi Mjesec)';
 
-    if (age >= 1.5 && age < 13.5) {
-      determinedPhaseKey = 'waxing';
-      phaseText = 'Mjesec u rastu';
+      if (age >= 1.5 && age < 13.5) {
+        determinedPhaseKey = 'waxing';
+        phaseText = 'Mjesec u rastu';
 
-    } else if (age >= 13.5 && age < 16.5) {
-      determinedPhaseKey = 'full-moon';
-      phaseText = 'Uštap (Pun Mjesec)';
+      } else if (age >= 13.5 && age < 16.5) {
+        determinedPhaseKey = 'full-moon';
+        phaseText = 'Uštap (Pun Mjesec)';
 
-    } else if (age >= 16.5 && age < 28.0) {
-      determinedPhaseKey = 'waning';
-      phaseText = 'Mjesec u padu';
-    }
+      } else if (age >= 16.5 && age < 28.0) {
+        determinedPhaseKey = 'waning';
+        phaseText = 'Mjesec u padu';
+      }
 
-    setLivePhaseName(phaseText);
-    setPhase(determinedPhaseKey);
+      setLivePhaseName(phaseText);
+      setPhase(determinedPhaseKey);
 
-    // ===== ZODIJAK =====
+      // ===== ZODIJAK =====
 
-    const now = new Date();
+      const now = new Date();
 
-    const JD =
-      (now.getTime() / 86400000) + 2440587.5;
+      const JD =
+        (now.getTime() / 86400000) + 2440587.5;
 
-    const T = (JD - 2451545.0) / 36525;
+      const T = (JD - 2451545.0) / 36525;
 
-    let moonLongitude =
-      218.3164477 + 481267.88123421 * T;
+      let moonLongitude =
+        218.3164477 + 481267.88123421 * T;
 
-    moonLongitude =
-      ((moonLongitude % 360) + 360) % 360;
+      moonLongitude =
+        ((moonLongitude % 360) + 360) % 360;
 
-    const zodiacSigns = [
-      'Ovan',
-      'Bik',
-      'Blizanci',
-      'Rak',
-      'Lav',
-      'Djevica',
-      'Vaga',
-      'Škorpion',
-      'Strijelac',
-      'Jarac',
-      'Vodenjak',
-      'Ribe'
-    ];
+      const zodiacSigns = [
+        'Ovan',
+        'Bik',
+        'Blizanci',
+        'Rak',
+        'Lav',
+        'Djevica',
+        'Vaga',
+        'Škorpion',
+        'Strijelac',
+        'Jarac',
+        'Vodenjak',
+        'Ribe'
+      ];
 
-    const signIndex =
-      Math.floor(moonLongitude / 30);
+      const signIndex =
+        Math.floor(moonLongitude / 30);
 
-    const currentSign =
-      zodiacSigns[signIndex];
+      const currentSign =
+        zodiacSigns[signIndex];
 
-    setLiveZodiac(currentSign);
-  };
+      setLiveZodiac(currentSign);
+    };
 
-  calculateMoonSpecs();
+    calculateMoonSpecs();
 
-}, []);
+  }, []);
 
   // Simulator nebeskog kretanja Mjeseca (Azimut/Visina)
   useEffect(() => {
@@ -285,10 +309,26 @@ function MoonPhaseDiet() {
             Preporučene opcije za danas:
           </p>
 
+
           <ul>
             {currentData.options.map((option, index) => (
               <li key={index} className="has-text-light is-size-6">
                 {option}
+              </li>
+            ))}
+          </ul>
+
+          <p className="has-text-white has-text-weight-bold mt-5 mb-2">
+            Prirodni ritam organizma:
+          </p>
+
+          <ul>
+            {currentData.bodyRhythm.map((item, index) => (
+              <li
+                key={index}
+                className="has-text-info-light is-size-6"
+              >
+                {item}
               </li>
             ))}
           </ul>
