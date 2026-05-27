@@ -38,10 +38,10 @@ function App() {
             <p className="is-size-7 has-text-white is-italic">
               <strong>Health Companion</strong> &copy; {new Date().getFullYear()} &middot; Sva prava pridržana.
               <br />
-              Autor: Tankred Kralj
+              Izradio: Tankred Kralj
             </p>
             <p className="is-size-7 has-text-white-ter is-italic">
-              Izrađeno s React-om i Bulma CSS-om u razvojnom dnevniku.
+              Izrađeno u Reactu uz Bulma CSS framework
             </p>
           </div>
         </footer>
