@@ -74,60 +74,82 @@ function MoonPhaseDiet() {
   const currentData = phaseData[phase];
 
   // --- EFEKT: RAČUNANJE STVARNE FAZE I ZODIJAKA NA TEMELJU DATUMA ---
-  useEffect(() => {
-    const calculateMoonSpecs = () => {
-      const date = new Date();
-      const year = date.getFullYear();
-      const month = date.getMonth() + 1;
-      const day = date.getDate();
+ useEffect(() => {
+  const calculateMoonSpecs = () => {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
 
-      const c = 365.25 * year;
-      const e = 30.6 * month;
-      const jd = c + e + day - 694039.09;
-      const cycles = jd / 29.530588853;
-      const age = (cycles - Math.floor(cycles)) * 29.530588853;
+    const c = 365.25 * year;
+    const e = 30.6 * month;
+    const jd = c + e + day - 694039.09;
 
-      let determinedPhaseKey = 'new-moon';
-      let phaseText = 'Mlađak (Novi Mjesec)';
+    const cycles = jd / 29.530588853;
+    const age =
+      (cycles - Math.floor(cycles)) * 29.530588853;
 
-      if (age >= 1.5 && age < 13.5) {
-        determinedPhaseKey = 'waxing';
-        phaseText = 'Mjesec u rastu';
-      } else if (age >= 13.5 && age < 16.5) {
-        determinedPhaseKey = 'full-moon';
-        phaseText = 'Uštap (Pun Mjesec)';
-      } else if (age >= 16.5 && age < 28.0) {
-        determinedPhaseKey = 'waning';
-        phaseText = 'Mjesec u padu';
-      }
+    let determinedPhaseKey = 'new-moon';
+    let phaseText = 'Mlađak (Novi Mjesec)';
 
-      setLivePhaseName(phaseText);
-      setPhase(determinedPhaseKey);
+    if (age >= 1.5 && age < 13.5) {
+      determinedPhaseKey = 'waxing';
+      phaseText = 'Mjesec u rastu';
 
-      const sidericCycles = jd / 27.321661;
-      const zodiacProgress = (sidericCycles - Math.floor(sidericCycles)) * 360;
+    } else if (age >= 13.5 && age < 16.5) {
+      determinedPhaseKey = 'full-moon';
+      phaseText = 'Uštap (Pun Mjesec)';
 
-      const zodiacSigns = [
-        { name: 'Ovan', min: 0, max: 30 },
-        { name: 'Bik', min: 30, max: 60 },
-        { name: 'Blizanci', min: 60, max: 90 },
-        { name: 'Rak', min: 90, max: 120 },
-        { name: 'Lav', min: 120, max: 150 },
-        { name: 'Djevica', min: 150, max: 180 },
-        { name: 'Vaga', min: 180, max: 210 },
-        { name: 'Škorpion', min: 210, max: 240 },
-        { name: 'Strijelac', min: 240, max: 270 },
-        { name: 'Jarac', min: 270, max: 300 },
-        { name: 'Vodenjak', min: 300, max: 330 },
-        { name: 'Ribe', min: 330, max: 360 }
-      ];
+    } else if (age >= 16.5 && age < 28.0) {
+      determinedPhaseKey = 'waning';
+      phaseText = 'Mjesec u padu';
+    }
 
-      const currentSign = zodiacSigns.find(sign => zodiacProgress >= sign.min && zodiacProgress < sign.max);
-      setLiveZodiac(currentSign ? currentSign.name : 'Ovan');
-    };
+    setLivePhaseName(phaseText);
+    setPhase(determinedPhaseKey);
 
-    calculateMoonSpecs();
-  }, []);
+    // ===== ZODIJAK =====
+
+    const now = new Date();
+
+    const JD =
+      (now.getTime() / 86400000) + 2440587.5;
+
+    const T = (JD - 2451545.0) / 36525;
+
+    let moonLongitude =
+      218.3164477 + 481267.88123421 * T;
+
+    moonLongitude =
+      ((moonLongitude % 360) + 360) % 360;
+
+    const zodiacSigns = [
+      'Ovan',
+      'Bik',
+      'Blizanci',
+      'Rak',
+      'Lav',
+      'Djevica',
+      'Vaga',
+      'Škorpion',
+      'Strijelac',
+      'Jarac',
+      'Vodenjak',
+      'Ribe'
+    ];
+
+    const signIndex =
+      Math.floor(moonLongitude / 30);
+
+    const currentSign =
+      zodiacSigns[signIndex];
+
+    setLiveZodiac(currentSign);
+  };
+
+  calculateMoonSpecs();
+
+}, []);
 
   // Simulator nebeskog kretanja Mjeseca (Azimut/Visina)
   useEffect(() => {
