@@ -108,6 +108,20 @@ Through this project I practiced:
 
 ---
 
+## Deployment
+
+The application is deployed and publicly available using [Vercel](https://vercel.com/?utm_source=chatgpt.com).
+
+This project was used to practice:
+
+* frontend deployment workflows
+* production builds
+* live application hosting
+* responsive production testing
+
+---
+
+
 ## Author
 
 Created by Tankred Kralj
