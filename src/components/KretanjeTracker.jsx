@@ -31,25 +31,37 @@ function MovementTracker() {
   // 2. Logika za bazičnu aktivnost (Rad na računalu ILI čišćenje kuće)
   useEffect(() => {
     if (baseActivity === 'office-pc') {
+
       // Rad na računalu: MET 1.3
-      const totalMinutes = workHours * 60;
-      const computedOfficeKcal = Math.floor(((1.3 * 3.5 * userWeight) / 200) * (totalMinutes / 60));
+      const officeMET = 1.3;
+      const computedOfficeKcal = Math.floor( officeMET * userWeight * workHours );
       setBaseCalories(computedOfficeKcal);
+
     } else if (baseActivity === 'housework') {
-      // POPRAVLJENO: Usisavanje s guranjem i znojenjem podignuto na MET 3.6
-      const kcalUsisavanjeGuranje = (3.6 * 3.5 * userWeight * 20) / 12000;
 
-      // Prašina (6 min, MET 2.3)
-      const kcalPrasina = (2.3 * 3.5 * userWeight * 6) / 12000;
+      // Usisavanje s guranjem i znojenjem
+      const houseworkMET = 3.8;
 
-      // Ribanje sanitarija u pognutom položaju (10 min, MET 5.0)
-      const kcalRibanjePognuto = (5.0 * 3.5 * userWeight * 10) / 12000;
+      // za 30 minuta
+      const houseworkHours = 0.5;
+      const totalHouseworkKcal = Math.floor(houseworkMET * userWeight * houseworkHours);
 
-      // Ukupni zbroj sada realno iznosi 261 kcal za 128 kg i uzima u obzir znojenje!
-      const totalHouseworkKcal = Math.floor(kcalUsisavanjeGuranje + kcalPrasina + kcalRibanjePognuto);
       setBaseCalories(totalHouseworkKcal);
+
+    } else if (baseActivity === 'lawnmowing') {
+
+      // Košenje trave kosilicom
+      const lawnmowingMET = 6.5;
+
+      // 20 minuta posla
+      const lawnmowingHours = 0.33;
+      const lawnmowingKcal = Math.floor(lawnmowingMET * userWeight * lawnmowingHours);
+
+      setBaseCalories(lawnmowingKcal);
     }
   }, [baseActivity, workHours, userWeight]);
+
+
 
 
   // Haversine formula za GPS udaljenost
@@ -177,6 +189,9 @@ function MovementTracker() {
                   </option>
                   <option value="housework" style={{ color: '#212529', backgroundColor: '#ffffff' }}>
                     Čišćenje kuće (30 min)
+                  </option>
+                  <option value="lawnmowing" style={{ color: '#212529', backgroundColor: '#ffffff' }}>
+                    Košenje trave (20 min)
                   </option>
                 </select>
               </div>

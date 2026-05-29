@@ -71,7 +71,7 @@ function Navbar() {
                         </div>
                     </div>
                     <div className='navbar-item'>
-                        <span className='tag is-dark is-medium'>v1.0</span>
+                        <span className='tag is-dark is-medium'>v1.2</span>
                     </div>
                 </div>
                 {/* ----------------------------------------------- */}

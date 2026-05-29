@@ -37,3 +37,7 @@ html {
 .custom-hover-card {
   transition: all 0.3s ease-in-out !important;
 }
+
+.navbar-burger span {
+  background-color: #363636 !important;
+}
