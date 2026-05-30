@@ -8,7 +8,7 @@ function Home() {
       {/* Pozdravna obavijest */}
       <div className='notification is-info is-light'>
         <h2 className='title is-4'>Dobrodošli u svoj razvojni dnevnik 🩺</h2>
-        <p>Tvoj osobni digitalni suputnik za zdravlje i praćenje prirodnih ritmova. Odaberi karticu ispod i kreni!</p>
+        <p>Tvoj osobni digitalni pomoćnik za zdravlje i praćenje prirodnih ritmova. Odaberi karticu ispod i kreni!</p>
       </div>
 
       {/* Grid s karticama koje reagiraju na dodir i hover */}
