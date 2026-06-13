@@ -1,163 +1,263 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from "react";
 
 function MovementTracker() {
-  
   // --- KORISNIČKI PODACI ---
-  const [userWeight, setUserWeight] = useState(103); // Zadano 103 kg 
+  const [userWeight, setUserWeight] = useState(103);
 
-  // --- SUSTAV 1: BAZIČNA DNEVNA AKTIVNOST (Preklopnik) ---
-  const [baseActivity, setBaseActivity] = useState('office-pc'); // 'office-pc' ili 'housework'
-  const [workHours, setWorkHours] = useState(8); // Za uredski rad
+  // --- SUSTAV 1: PRIMARNA DNEVNA AKTIVNOST ---
+  const [baseActivity, setBaseActivity] = useState("office-pc");
+  const [workHours, setWorkHours] = useState(8);
   const [baseCalories, setBaseCalories] = useState(0);
 
-  // --- SUSTAV 2: GPS ŠETNJA (Dodatno kretanje) ---
+  // Određuje ulazi li gornji dio u ukupan zbroj
+  const [includeBaseCalories, setIncludeBaseCalories] = useState(true);
+
+  // --- SUSTAV 2: GPS KRETANJE ---
   const [isGpsTracking, setIsGpsTracking] = useState(false);
   const [steps, setSteps] = useState(0);
-  const [distance, setDistance] = useState(0.0);
+  const [distance, setDistance] = useState(0);
   const [gpsCalories, setGpsCalories] = useState(0);
-  const [routeNote, setRouteNote] = useState('Spremno za polazak kući s mobitelom u džepu! 📱');
+
+  const [routeNote, setRouteNote] = useState(
+    "Spremno za početak GPS praćenja. 📱"
+  );
 
   const lastPositionRef = useRef(null);
   const watchIdRef = useRef(null);
 
-  // 1. Učitavanje stvarne mase iz kalkulatora
+  // Učitavanje mase iz localStoragea
   useEffect(() => {
-    const savedWeight = localStorage.getItem('userWeight');
-    if (savedWeight && parseFloat(savedWeight) > 0) {
-      setUserWeight(parseFloat(savedWeight));
+    const savedWeight = localStorage.getItem("userWeight");
+    const parsedWeight = parseFloat(savedWeight);
+
+    if (!Number.isNaN(parsedWeight) && parsedWeight > 0) {
+      setUserWeight(parsedWeight);
     }
   }, []);
 
-  // 2. Logika za bazičnu aktivnost (Rad na računalu ILI čišćenje kuće)
+  // Izračun primarne aktivnosti
   useEffect(() => {
-    if (baseActivity === 'office-pc') {
-
-      // Rad na računalu: MET 1.3
+    if (baseActivity === "office-pc") {
       const officeMET = 1.3;
-      const computedOfficeKcal = Math.floor( officeMET * userWeight * workHours );
-      setBaseCalories(computedOfficeKcal);
+      const calculatedCalories = Math.floor(
+        officeMET * userWeight * workHours
+      );
 
-    } else if (baseActivity === 'housework') {
+      setBaseCalories(calculatedCalories);
+      return;
+    }
 
-      // Usisavanje s guranjem i znojenjem
+    if (baseActivity === "housework") {
       const houseworkMET = 3.8;
-
-      // za 30 minuta
       const houseworkHours = 0.5;
-      const totalHouseworkKcal = Math.floor(houseworkMET * userWeight * houseworkHours);
 
-      setBaseCalories(totalHouseworkKcal);
+      const calculatedCalories = Math.floor(
+        houseworkMET * userWeight * houseworkHours
+      );
 
-    } else if (baseActivity === 'lawnmowing') {
+      setBaseCalories(calculatedCalories);
+      return;
+    }
 
-      // Košenje trave kosilicom
+    if (baseActivity === "lawnmowing") {
       const lawnmowingMET = 6.5;
+      const lawnmowingHours = 20 / 60;
 
-      // 20 minuta posla
-      const lawnmowingHours = 0.33;
-      const lawnmowingKcal = Math.floor(lawnmowingMET * userWeight * lawnmowingHours);
+      const calculatedCalories = Math.floor(
+        lawnmowingMET * userWeight * lawnmowingHours
+      );
 
-      setBaseCalories(lawnmowingKcal);
+      setBaseCalories(calculatedCalories);
     }
   }, [baseActivity, workHours, userWeight]);
 
-
-
-
-  // Haversine formula za GPS udaljenost
+  // Haversine formula za udaljenost između dvije GPS točke
   const calculateDistanceInKm = (lat1, lon1, lat2, lon2) => {
-    const R = 6371;
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
+    const earthRadius = 6371;
+
+    const latitudeDifference = ((lat2 - lat1) * Math.PI) / 180;
+    const longitudeDifference = ((lon2 - lon1) * Math.PI) / 180;
+
+    const calculation =
+      Math.sin(latitudeDifference / 2) *
+        Math.sin(latitudeDifference / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(longitudeDifference / 2) *
+        Math.sin(longitudeDifference / 2);
+
+    const angularDistance =
+      2 * Math.atan2(Math.sqrt(calculation), Math.sqrt(1 - calculation));
+
+    return earthRadius * angularDistance;
   };
 
-  // 3. Aktivacija mobilnog GPS-a za šetnju kući
+  // GPS praćenje
   useEffect(() => {
-    if (isGpsTracking) {
-      if ('geolocation' in navigator) {
-        watchIdRef.current = navigator.geolocation.watchPosition(
-          (position) => {
-            const { latitude, longitude, accuracy } = position.coords;
-
-            if (accuracy > 20) {
-              setRouteNote('Tražim bolji satelitski signal... Izađite van 🛰️');
-              return;
-            }
-
-            if (lastPositionRef.current) {
-              const kmMoved = calculateDistanceInKm(
-                lastPositionRef.current.latitude,
-                lastPositionRef.current.longitude,
-                latitude,
-                longitude
-              );
-
-              if (kmMoved > 0.002) {
-                setDistance((prevDistance) => {
-                  const newDistance = parseFloat((prevDistance + kmMoved).toFixed(2));
-                  const newSteps = Math.floor((newDistance * 1000) / 0.75);
-                  setSteps(newSteps);
-
-                  const computedGpsKcal = Math.floor(0.75 * userWeight * newDistance);
-                  setGpsCalories(computedGpsKcal);
-
-                  if (newDistance <= 0.5) setRouteNote('Krenuli ste s posla! Prolazite pokraj konkatedrale... ⛪');
-                  else if (newDistance > 0.5 && newDistance <= 1.5) setRouteNote('Uživate u šetnji osječkom Promenadom uz Dravu... 🌊');
-                  else if (newDistance > 1.5 && newDistance <= 2.5) setRouteNote('Prelazite preko pješačkog mosta... 🌉');
-                  else setRouteNote('Stigli ste na odredište! Odličan balans dana! 🏰');
-
-                  return newDistance;
-                });
-              }
-            } else {
-              setRouteNote('GPS zaključan! Možete krenuti pješačiti kući... 🏃‍♂️');
-            }
-            lastPositionRef.current = { latitude, longitude };
-          },
-          (error) => {
-            console.error(error);
-            setRouteNote('Uključite lokaciju na mobitelu za praćenje rute! 🛑');
-            setIsGpsTracking(false);
-          },
-          { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
-        );
-      } else {
-        alert('Tvoj mobitel ne podržava GPS.');
-        setIsGpsTracking(false);
-      }
-    } else {
-      if (watchIdRef.current) {
+    if (!isGpsTracking) {
+      if (watchIdRef.current !== null) {
         navigator.geolocation.clearWatch(watchIdRef.current);
-        lastPositionRef.current = null;
+        watchIdRef.current = null;
       }
+
+      lastPositionRef.current = null;
+      return undefined;
     }
 
+    if (!("geolocation" in navigator)) {
+      alert("Ovaj uređaj ne podržava GPS praćenje.");
+      setIsGpsTracking(false);
+      return undefined;
+    }
+
+    setRouteNote("Tražim GPS signal... 🛰️");
+
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+
+        // Ne prihvaćamo vrlo neprecizne GPS točke
+        if (accuracy > 30) {
+          setRouteNote(
+            `GPS signal još nije dovoljno precizan. Preciznost: ${Math.round(
+              accuracy
+            )} m.`
+          );
+          return;
+        }
+
+        // Prva točka samo postavlja početnu poziciju
+        if (!lastPositionRef.current) {
+          lastPositionRef.current = {
+            latitude,
+            longitude,
+          };
+
+          setRouteNote("GPS je spreman. Praćenje kretanja je započelo. ✅");
+          return;
+        }
+
+        const movedDistance = calculateDistanceInKm(
+          lastPositionRef.current.latitude,
+          lastPositionRef.current.longitude,
+          latitude,
+          longitude
+        );
+
+        /*
+          Ignoriramo premale pomake jer su često samo GPS odstupanje.
+          0.005 km = 5 metara.
+        */
+        if (movedDistance < 0.005) {
+          return;
+        }
+
+        /*
+          Ignoriramo i nelogično velike skokove između dva očitanja.
+          Time sprječavamo da GPS pogreška doda stotine metara.
+        */
+        if (movedDistance > 0.5) {
+          lastPositionRef.current = {
+            latitude,
+            longitude,
+          };
+
+          setRouteNote("GPS je zabilježio neprecizan skok i preskočio ga.");
+          return;
+        }
+
+        setDistance((previousDistance) => {
+          const updatedDistance = Number(
+            (previousDistance + movedDistance).toFixed(3)
+          );
+
+          const updatedSteps = Math.floor(
+            (updatedDistance * 1000) / 0.75
+          );
+
+          const updatedGpsCalories = Math.floor(
+            0.75 * userWeight * updatedDistance
+          );
+
+          setSteps(updatedSteps);
+          setGpsCalories(updatedGpsCalories);
+
+          setRouteNote(
+            `Praćenje je aktivno. Prijeđeno: ${updatedDistance.toFixed(
+              2
+            )} km. 🚶‍♂️`
+          );
+
+          return updatedDistance;
+        });
+
+        lastPositionRef.current = {
+          latitude,
+          longitude,
+        };
+      },
+      (error) => {
+        console.error("GPS greška:", error);
+
+        if (error.code === error.PERMISSION_DENIED) {
+          setRouteNote(
+            "Pristup lokaciji nije dopušten. Omogućite lokaciju u pregledniku."
+          );
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          setRouteNote("GPS lokacija trenutno nije dostupna.");
+        } else if (error.code === error.TIMEOUT) {
+          setRouteNote("GPS nije uspio pronaći lokaciju na vrijeme.");
+        } else {
+          setRouteNote("Dogodila se greška tijekom GPS praćenja.");
+        }
+
+        setIsGpsTracking(false);
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 10000,
+      }
+    );
+
     return () => {
-      if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current);
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
     };
   }, [isGpsTracking, userWeight]);
 
+  // Ukupna potrošnja
+  const totalCalories =
+    gpsCalories + (includeBaseCalories ? baseCalories : 0);
+
   const resetAllData = () => {
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+
     setIsGpsTracking(false);
     setSteps(0);
-    setDistance(0.0);
+    setDistance(0);
     setGpsCalories(0);
+
     setWorkHours(8);
-    setBaseActivity('office-pc');
+    setBaseActivity("office-pc");
+    setIncludeBaseCalories(true);
+
     lastPositionRef.current = null;
-    setRouteNote('Spremno za novi polazak kući s mobitelom u džepu! 📱');
+
+    setRouteNote("Spremno za novo GPS praćenje. 📱");
   };
 
   return (
     <div className="card">
       <div className="card-content">
-        <h3 className="title is-4 has-text-success">🏃‍♂️ Dnevni Tracker Aktivnosti & Kretanja</h3>
+        <h3 className="title is-4 has-text-success">
+          🏃‍♂️ Dnevni Tracker Aktivnosti & Kretanja
+        </h3>
 
         <div className="notification is-light is-success py-2 px-3 mb-4">
           <p className="is-size-6">
@@ -165,32 +265,36 @@ function MovementTracker() {
           </p>
         </div>
 
-        {/* ================= BLOK 1: GLAVNA DNEVNA AKTIVNOST (POPRAVLJENI KONTRAST TEKSTA) ================= */}
+        {/* PRIMARNA AKTIVNOST */}
         <div className="box has-background-light p-4 mb-4">
-          <h4 className="title is-5 has-text-grey-dark mb-3">🛠️ Korak 1: Primarna dnevna aktivnost</h4>
+          <h4 className="title is-5 has-text-grey-dark mb-3">
+            🛠️ Korak 1: Primarna dnevna aktivnost
+          </h4>
 
-          {/* Padajući izbornik za odabir primarne aktivnosti */}
           <div className="field mb-4">
             <div className="control">
-              {/* Krupniji prikaz (is-medium) s eksplicitno definiranim crnim tekstom */}
               <div className="select is-fullwidth is-medium">
                 <select
                   value={baseActivity}
-                  onChange={(e) => setBaseActivity(e.target.value)}
+                  onChange={(event) =>
+                    setBaseActivity(event.target.value)
+                  }
                   style={{
-                    backgroundColor: '#e9ecef', // Jasna, ugodna svjetlosiva pozadina
-                    borderColor: '#ced4da',
-                    color: '#212529',           // Strogo definirana tamna boja slova da se sve vidi
-                    fontWeight: '600'
+                    backgroundColor: "#e9ecef",
+                    borderColor: "#ced4da",
+                    color: "#212529",
+                    fontWeight: "600",
                   }}
                 >
-                  <option value="office-pc" style={{ color: '#212529', backgroundColor: '#ffffff' }}>
+                  <option value="office-pc">
                     Rad na poslu / Računalo
                   </option>
-                  <option value="housework" style={{ color: '#212529', backgroundColor: '#ffffff' }}>
+
+                  <option value="housework">
                     Čišćenje kuće (30 min)
                   </option>
-                  <option value="lawnmowing" style={{ color: '#212529', backgroundColor: '#ffffff' }}>
+
+                  <option value="lawnmowing">
                     Košenje trave (20 min)
                   </option>
                 </select>
@@ -198,126 +302,226 @@ function MovementTracker() {
             </div>
           </div>
 
-          {/* Dinamički prikaz pod-opcija ovisno o odabiru */}
           <div className="columns is-mobile is-vcentered">
             <div className="column is-7">
-              {baseActivity === 'office-pc' ? (
+              {baseActivity === "office-pc" ? (
                 <div className="field is-horizontal is-align-items-center">
-                  {/* Osigurana tamna boja za tekst 'Odradite sati:' */}
-                  <label className="label is-size-6 mb-0 mr-3 has-text-dark" style={{ whiteSpace: 'nowrap' }}>
+                  <label
+                    className="label is-size-6 mb-0 mr-3 has-text-dark"
+                    style={{ whiteSpace: "nowrap" }}
+                  >
                     Odradite sati:
                   </label>
-                  <div className="control" style={{ maxWidth: '80px' }}>
+
+                  <div
+                    className="control"
+                    style={{ maxWidth: "80px" }}
+                  >
                     <input
                       className="input is-medium has-text-centered has-text-weight-bold has-text-dark"
                       type="number"
+                      min="0"
+                      step="0.5"
                       value={workHours}
-                      onChange={(e) => setWorkHours(parseFloat(e.target.value) || 0)}
-                      style={{ color: '#212529', backgroundColor: '#ffffff' }}
+                      onChange={(event) =>
+                        setWorkHours(
+                          parseFloat(event.target.value) || 0
+                        )
+                      }
+                      style={{
+                        color: "#212529",
+                        backgroundColor: "#ffffff",
+                      }}
                     />
                   </div>
                 </div>
               ) : (
-                /* POPRAVLJENO: Tekst 'Obuhvaća...' je uklonjen s ekrana, ostavljen je čisti prostor pokraj potrošnje */
                 <p className="is-size-6 has-text-grey-dark has-text-weight-semibold">
-                  Aktivnost aktivna 🧹
+                  Aktivnost odabrana
                 </p>
               )}
             </div>
+
             <div className="column is-5 has-text-right">
-              <p className="heading mb-0 has-text-grey-dark">Potrošnja aktivnosti</p>
-              <p className="title is-4 has-text-dark">{baseCalories} kcal</p>
+              <p className="heading mb-0 has-text-grey-dark">
+                Potrošnja aktivnosti
+              </p>
+
+              <p className="title is-4 has-text-dark">
+                {baseCalories} kcal
+              </p>
             </div>
+          </div>
+
+          {/* CHECKBOX ZA UKLJUČIVANJE U UKUPAN ZBROJ */}
+          <div
+            className="notification is-white mt-3 mb-0 py-3 px-3"
+            style={{ border: "1px solid #dbdbdb" }}
+          >
+            <label
+              className="checkbox has-text-dark has-text-weight-semibold"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={includeBaseCalories}
+                onChange={(event) =>
+                  setIncludeBaseCalories(event.target.checked)
+                }
+                style={{
+                  width: "20px",
+                  height: "20px",
+                  cursor: "pointer",
+                }}
+              />
+
+              Uključi primarnu aktivnost u ukupnu potrošnju
+            </label>
+
+            <p className="is-size-7 has-text-grey mt-2">
+              {includeBaseCalories
+                ? "Primarna aktivnost i GPS kretanje zbrajaju se zajedno."
+                : "Primarna aktivnost se prikazuje, ali ne ulazi u ukupan zbroj."}
+            </p>
           </div>
         </div>
 
+        {/* GPS KRETANJE */}
+        <div
+          className="box p-4 mb-4 has-background-dark"
+          style={{ borderLeft: "4px solid #48c78e" }}
+        >
+          <h4 className="title is-5 has-text-white mb-2">
+            🛰️ Korak 2: GPS kretanje
+          </h4>
 
-
-        {/* ================= BLOK 2: PUT KUĆI (Zadržan tvoj crni stil s bijelim tekstom) ================= */}
-        <div className="box p-4 mb-4 has-background-dark" style={{ borderLeft: '4px solid #48c78e' }}>
-          <h4 className="title is-5 has-text-white mb-2">🛰️ Korak 2: Kretanje - pješačenje (Pravi GPS)</h4>
-
-          <div className="notification is-dark py-2 px-3 mb-3" style={{ background: '#1c1f2b' }}>
-            <p className="is-size-7 has-text-weight-bold has-text-success">{routeNote}</p>
+          <div
+            className="notification is-dark py-2 px-3 mb-3"
+            style={{ background: "#1c1f2b" }}
+          >
+            <p className="is-size-7 has-text-weight-bold has-text-success">
+              {routeNote}
+            </p>
           </div>
 
           <div className="columns is-mobile has-text-centered mb-3">
             <div className="column">
-              <p className="heading mb-1 has-text-grey-light">Udaljenost</p>
-              <p className="title is-5 has-text-white">{distance} km</p>
+              <p className="heading mb-1 has-text-grey-light">
+                Udaljenost
+              </p>
+
+              <p className="title is-5 has-text-white">
+                {distance.toFixed(2)} km
+              </p>
             </div>
+
             <div className="column">
-              <p className="heading mb-1 has-text-grey-light">Koraci</p>
-              <p className="title is-5 has-text-white">{steps}</p>
+              <p className="heading mb-1 has-text-grey-light">
+                Koraci
+              </p>
+
+              <p className="title is-5 has-text-white">
+                {steps}
+              </p>
             </div>
+
             <div className="column">
-              <p className="heading mb-1 has-text-danger-light">Šetnja</p>
-              <p className="title is-5 has-text-danger has-text-weight-bold">{gpsCalories} kcal</p>
+              <p className="heading mb-1 has-text-danger-light">
+                Kretanje
+              </p>
+
+              <p className="title is-5 has-text-danger has-text-weight-bold">
+                {gpsCalories} kcal
+              </p>
             </div>
           </div>
 
           <button
-            className={`button is-madium is-fullwidth ${isGpsTracking ? 'is-danger' : 'is-success'}`}
-            onClick={() => setIsGpsTracking(!isGpsTracking)}
+            className={`button is-medium is-fullwidth ${
+              isGpsTracking ? "is-danger" : "is-success"
+            }`}
+            onClick={() =>
+              setIsGpsTracking((previousValue) => !previousValue)
+            }
           >
-            {isGpsTracking ? 'Zaustavi GPS praćenje rute' : 'Kreni kući (Uključi mobilni GPS)'}
+            {isGpsTracking
+              ? "Zaustavi GPS praćenje"
+              : "Pokreni GPS praćenje"}
           </button>
         </div>
 
-        {/* Gumb za pokretanje GPS-a unutar Koraka 2 maknut s dna i spušten u zajednički red */}
-      </div>
+        {/* UKUPAN ZBROJ */}
+        <div className="box has-background-dark p-3 has-text-centered mb-4">
+          <p className="heading has-text-grey-light">
+            📊 UKUPNA ENERGETSKA POTROŠNJA
+          </p>
 
-      {/* ================= UKUPNI ZBROJ DANA ================= */}
-      <div className="box has-background-dark p-3 has-text-centered mb-4">
-        <p className="heading has-text-grey-light">📊 UKUPNA ENERGETSKA POTROŠNJA DANA</p>
-        <p className="title is-3 has-text-warning mt-1">
-          {baseCalories + gpsCalories} <span className="is-size-5">kcal</span>
-        </p>
-        <p className="is-size-7 has-text-grey-light is-italic mt-1">
-          (Baza: {baseCalories} kcal + Šetnja kući: {gpsCalories} kcal)
-        </p>
-      </div>
+          <p className="title is-3 has-text-warning mt-1">
+            {totalCalories}{" "}
+            <span className="is-size-5">kcal</span>
+          </p>
 
-      {/* ================= POPRAVLJENO: GUMBI U ISTOM REDU ================= */}
-      <div className="columns is-mobile is-variable is-2">
-
-        {/* Lijevi gumb: GPS Kontrola */}
-        <div className="column is-half">
-          <button
-            className={`button is-medium is-fullwidth ${isGpsTracking ? 'is-danger' : 'is-success'}`}
-            onClick={() => setIsGpsTracking(!isGpsTracking)}
-            style={{ fontWeight: '600', height: '40px' }}
-          >
-            {isGpsTracking ? 'Zaustavi GPS' : 'Uključi GPS'}
-          </button>
+          <p className="is-size-7 has-text-grey-light is-italic mt-1">
+            Primarna aktivnost:{" "}
+            {includeBaseCalories
+              ? `${baseCalories} kcal`
+              : "nije uključena"}
+            {" + "}
+            GPS kretanje: {gpsCalories} kcal
+          </p>
         </div>
 
-        {/* Desni gumb: Resetiranje dana */}
-        <div className="column is-half">
-          <button
-            className="button is-medium is-light is-fullwidth"
-            onClick={resetAllData}
-            disabled={baseCalories === 0 && gpsCalories === 0 && distance === 0}
-            style={{ fontWeight: '600', height: '40px' }}
-          >
-            Resetiraj dan 🔄
-          </button>
+        {/* DONJI GUMBI */}
+        <div className="columns is-mobile is-variable is-2">
+          <div className="column is-half">
+            <button
+              className={`button is-medium is-fullwidth ${
+                isGpsTracking ? "is-danger" : "is-success"
+              }`}
+              onClick={() =>
+                setIsGpsTracking((previousValue) => !previousValue)
+              }
+              style={{
+                fontWeight: "600",
+                minHeight: "40px",
+              }}
+            >
+              {isGpsTracking ? "Zaustavi GPS" : "Uključi GPS"}
+            </button>
+          </div>
+
+          <div className="column is-half">
+            <button
+              className="button is-medium is-light is-fullwidth"
+              onClick={resetAllData}
+              style={{
+                fontWeight: "600",
+                minHeight: "40px",
+              }}
+            >
+              Resetiraj dan 🔄
+            </button>
+          </div>
         </div>
 
+        <div
+          className="mt-4 pt-2"
+          style={{ borderTop: "1px dashed #ccc" }}
+        >
+          <p className="is-size-7 has-text-grey has-text-centered is-italic">
+            * Napomena: Izračun energetskog utroška izražen u
+            kilokalorijama temelji se na MET vrijednostima, prijeđenoj
+            udaljenosti i unesenoj tjelesnoj masi. Rezultati su
+            informativni.
+          </p>
+        </div>
       </div>
-      {/* =================================================================== */}
-
-      {/* ODRICANJE OD ODGOVORNOSTI */}
-      <div className="mt-4 pt-2" style={{ borderTop: '1px dashed #ccc' }}>
-        <p className="is-size-7 has-text-grey has-text-centered is-italic">
-          * Napomena: Izračun energetskog utroška izražen u kilokalorijama (kcal) temelji se na metaboličkim jednadžbama (MET) i unesenoj tjelesnoj masi. Služi isključivo u informativne i edukativne svrhe.
-        </p>
-      </div>
-
-      </div>
-    
+    </div>
   );
 }
 
 export default MovementTracker;
-
