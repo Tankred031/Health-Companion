@@ -275,7 +275,7 @@ function PrirodniUvjeti() {
       );
 
       if (effectiveTemperature >= 32) {
-        waterAmount = ('5.0 – 7.0 Litara dnevno');
+        waterAmount = ('4.0 – 5.0 Litara dnevno');
 
         waterText = (
           `PAŽNJA: Stvarna temperatura iznosi ${temperature
@@ -285,10 +285,10 @@ function PrirodniUvjeti() {
             .replace(
               '.',
               ','
-            )}°C. Zbog topline, moguće sparine i tvoje mase od ${savedWeight} kg tijelo ubrzano gubi tekućinu. Mirniji dan u klimatiziranom prostoru zahtijeva manji unos, dok hodanje, posao vani ili trening zahtijevaju redovitu hidraciju i nadoknadu elektrolita.`
+            )}°C. Zbog topline, moguće sparine i tvoje mase od ${savedWeight} kg tijelo ubrzano gubi tekućinu. Mirniji dan u klimatiziranom prostoru zahtijeva manji unos, dok hodanje, posao vani ili trening zahtijevaju redovitu hidraciju i nadoknadu elektrolita. Pij postupno kroz dan, najviše oko 1 L na sat jer prebrzo pijenje može razrijediti natrij u krvi; pri naporu na vrućini okvirno 0,4 – 0,8 L na sat.`
         );
       } else {
-        waterAmount = ('3.5 – 4.5 Litara dnevno');
+        waterAmount = ('3.0 – 4.0 Litara dnevno');
 
         waterText = (
           `U toplim uvjetima, uz temperaturu od ${temperature
@@ -338,7 +338,7 @@ function PrirodniUvjeti() {
 
       seasonClass = ('is-info is-light');
 
-      const winterLiters = ((savedWeight * 35) / 1000).toFixed(1);
+      const winterLiters = ((savedWeight * 30) / 1000).toFixed(1);
 
       waterAmount = (`${winterLiters} Litara dnevno`);
 

@@ -63,14 +63,14 @@ function BmiCalculator() {
       if (isWarm) {
         if (liveTemp >= 32) {
           // Tropski dani (32+ °C)
-          setWater('5.0 – 7.0 L');
+          setWater('4.0 – 5.0 L');
         } else {
           // Umjereno ljeto / proljeće
-          setWater('3.5 – 4.5 L');
+          setWater('3.0 – 4.0 L');
         }
       } else {
-        // Zimski uvjeti (Bazična formula: 35 ml po kg mase)
-        const winterLiters = ((weight * 35) / 1000).toFixed(1);
+        // Zimski uvjeti (Bazična formula: 30 ml po kg mase)
+        const winterLiters = ((weight * 30) / 1000).toFixed(1);
         setWater(`${winterLiters} L`);
       }
 
