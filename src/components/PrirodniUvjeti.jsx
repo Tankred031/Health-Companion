@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import storageService from '../services/healthCompanionService';
 
 function PrirodniUvjeti() {
   // --- METEO STANJA ---
@@ -7,9 +8,6 @@ function PrirodniUvjeti() {
   const [apparentTemperature, setApparentTemperature] = useState(null);
   const [dewPoint, setDewPoint] = useState(null);
 
-  const [humidityLevel, setHumidityLevel] = useState('');
-  const [humidityText, setHumidityText] = useState('');
-  const [humidityClass, setHumidityClass] = useState('is-info is-light');
 
   const [loadingWeather, setLoadingWeather] = useState(true);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
@@ -18,16 +16,6 @@ function PrirodniUvjeti() {
   const [manualHumidity, setManualHumidity] = useState('');
 
   // --- ZDRAVSTVENA STANJA ---
-  const [season, setSeason] = useState('');
-  const [waterAmount, setWaterAmount] = useState('');
-  const [waterText, setWaterText] = useState('');
-  const [vitaminDAmount, setVitaminDAmount] = useState('');
-  const [vitaminDText, setVitaminDText] = useState('');
-  const [seasonClass, setSeasonClass] = useState('is-info');
-
-  useEffect(() => {
-    fetchWeather();
-  }, []);
 
   const calculateDewPoint = (temp, relativeHumidity) => {
     if (
@@ -79,8 +67,6 @@ function PrirodniUvjeti() {
   };
 
   const fetchWeather = () => {
-    setLoadingWeather(true);
-
     fetch(
       'https://api.open-meteo.com/v1/forecast?latitude=45.55&longitude=18.69&current=temperature_2m,relative_humidity_2m,apparent_temperature,dew_point_2m'
     )
@@ -127,6 +113,17 @@ function PrirodniUvjeti() {
       });
   };
 
+  // Pri prvom učitavanju dohvaćamo vremensku prognozu (loadingWeather je već true)
+  useEffect(() => {
+    fetchWeather();
+  }, []);
+
+  // Ručno osvježavanje s gumba
+  const refreshWeather = () => {
+    setLoadingWeather(true);
+    fetchWeather();
+  };
+
   const formatNumber = (value) => {
     if (value === null || Number.isNaN(value)) {
       return '--';
@@ -145,20 +142,25 @@ function PrirodniUvjeti() {
       ? 'has-text-info'
       : 'has-text-danger';
 
-  useEffect(() => {
+  // Procjena vlažnosti i sparine računa se izravno iz trenutnih vrijednosti
+  const getHumidityInfo = () => {
+    let humidityLevel = '';
+    let humidityText = '';
+    let humidityClass = 'is-info is-light';
+
     if (
       temperature === null ||
       humidity === null ||
       dewPoint === null
     ) {
-      return;
+      return { humidityLevel, humidityClass, humidityText };
     }
 
     if (temperature < 8) {
-      setHumidityLevel('Hladni vremenski uvjeti');
-      setHumidityClass('is-info is-light');
+      humidityLevel = ('Hladni vremenski uvjeti');
+      humidityClass = ('is-info is-light');
 
-      setHumidityText(
+      humidityText = (
         `Temperatura iznosi ${formatNumber(
           temperature
         )} °C, a osjeća se kao ${formatNumber(
@@ -168,14 +170,14 @@ function PrirodniUvjeti() {
         )} %. Pri ovoj temperaturi nema sparine; važniji je osjećaj hladnoće.`
       );
 
-      return;
+      return { humidityLevel, humidityClass, humidityText };
     }
 
     if (temperature < 20) {
-      setHumidityLevel('Svjež i vlažan zrak');
-      setHumidityClass('is-primary is-light');
+      humidityLevel = ('Svjež i vlažan zrak');
+      humidityClass = ('is-primary is-light');
 
-      setHumidityText(
+      humidityText = (
         `Vlažnost zraka iznosi ${Math.round(
           humidity
         )} %, a osjeća se kao ${formatNumber(
@@ -183,61 +185,73 @@ function PrirodniUvjeti() {
         )} °C. Temperatura nije dovoljno visoka za pojavu sparine.`
       );
 
-      return;
+      return { humidityLevel, humidityClass, humidityText };
     }
 
     if (dewPoint < 13) {
-      setHumidityLevel('Ugodan i suh zrak');
-      setHumidityClass('is-success is-light');
+      humidityLevel = ('Ugodan i suh zrak');
+      humidityClass = ('is-success is-light');
 
-      setHumidityText(
+      humidityText = (
         'Zrak je ugodan, a znoj može normalno isparavati i hladiti tijelo.'
       );
     } else if (dewPoint < 16) {
-      setHumidityLevel('Ugodna vlažnost');
-      setHumidityClass('is-success is-light');
+      humidityLevel = ('Ugodna vlažnost');
+      humidityClass = ('is-success is-light');
 
-      setHumidityText(
+      humidityText = (
         'Vlažnost je primjetna, ali zasad ne stvara značajno toplinsko opterećenje.'
       );
     } else if (dewPoint < 19) {
-      setHumidityLevel('Blago sparno');
-      setHumidityClass('is-warning is-light');
+      humidityLevel = ('Blago sparno');
+      humidityClass = ('is-warning is-light');
 
-      setHumidityText(
+      humidityText = (
         'Zrak je blago vlažan. Tijekom fizičke aktivnosti može se osjetiti otežano hlađenje tijela.'
       );
     } else if (dewPoint < 22) {
-      setHumidityLevel('Sparno');
-      setHumidityClass('is-warning');
+      humidityLevel = ('Sparno');
+      humidityClass = ('is-warning');
 
-      setHumidityText(
+      humidityText = (
         'Povišena vlaga usporava isparavanje znoja pa se temperatura može osjećati višom nego što pokazuje termometar.'
       );
     } else if (dewPoint < 25) {
-      setHumidityLevel('Vrlo sparno');
-      setHumidityClass('is-danger is-light');
+      humidityLevel = ('Vrlo sparno');
+      humidityClass = ('is-danger is-light');
 
-      setHumidityText(
+      humidityText = (
         'Tijelo se teže hladi zbog visoke vlage. Aktivnosti na otvorenom mogu djelovati znatno napornije.'
       );
     } else {
-      setHumidityLevel('Ekstremno sparno');
-      setHumidityClass('is-danger');
+      humidityLevel = ('Ekstremno sparno');
+      humidityClass = ('is-danger');
 
-      setHumidityText(
+      humidityText = (
         'Izrazito visoka sparina snažno otežava prirodno hlađenje tijela. Potreban je oprez tijekom boravka i aktivnosti na otvorenom.'
       );
     }
-  }, [temperature, humidity, dewPoint, apparentTemperature]);
 
-  useEffect(() => {
+    return { humidityLevel, humidityClass, humidityText };
+  };
+
+  const { humidityLevel, humidityClass, humidityText } = getHumidityInfo();
+
+  // Sezonski vodič (voda i vitamin D) računa se izravno iz temperature
+  const getSeasonInfo = () => {
+    let season = '';
+    let seasonClass = 'is-info';
+    let waterAmount = '';
+    let waterText = '';
+    let vitaminDAmount = '';
+    let vitaminDText = '';
+
     if (temperature === null) {
-      return;
+      return { season, seasonClass, waterAmount, waterText, vitaminDAmount, vitaminDText };
     }
 
-    const savedWeight = localStorage.getItem('userWeight')
-      ? parseFloat(localStorage.getItem('userWeight'))
+    const savedWeight = storageService.get('userWeight')
+      ? parseFloat(storageService.get('userWeight'))
       : 103;
 
     const effectiveTemperature =
@@ -246,24 +260,24 @@ function PrirodniUvjeti() {
         : temperature;
 
     if (effectiveTemperature >= 27) {
-      setSeason(
+      season = (
         `Ljetni uvjeti ☀️ (${temperature
           .toFixed(1)
           .replace('.', ',')}°C)`
       );
 
-      setSeasonClass('is-warning is-light');
+      seasonClass = ('is-warning is-light');
 
-      setVitaminDAmount('400 IJ — Ljetni minimum');
+      vitaminDAmount = ('400 IJ — Ljetni minimum');
 
-      setVitaminDText(
+      vitaminDText = (
         'Izloženost suncu u Osijeku je visoka. Koža prirodno sintetizira Vitamin D3, stoga je dodatni unos spušten na preporučeni minimum.'
       );
 
       if (effectiveTemperature >= 32) {
-        setWaterAmount('5.0 – 7.0 Litara dnevno');
+        waterAmount = ('4.0 – 5.0 Litara dnevno');
 
-        setWaterText(
+        waterText = (
           `PAŽNJA: Stvarna temperatura iznosi ${temperature
             .toFixed(1)
             .replace('.', ',')}°C, a osjeća se kao ${effectiveTemperature
@@ -271,12 +285,12 @@ function PrirodniUvjeti() {
             .replace(
               '.',
               ','
-            )}°C. Zbog topline, moguće sparine i tvoje mase od ${savedWeight} kg tijelo ubrzano gubi tekućinu. Mirniji dan u klimatiziranom prostoru zahtijeva manji unos, dok hodanje, posao vani ili trening zahtijevaju redovitu hidraciju i nadoknadu elektrolita.`
+            )}°C. Zbog topline, moguće sparine i tvoje mase od ${savedWeight} kg tijelo ubrzano gubi tekućinu. Mirniji dan u klimatiziranom prostoru zahtijeva manji unos, dok hodanje, posao vani ili trening zahtijevaju redovitu hidraciju i nadoknadu elektrolita. Pij postupno kroz dan, najviše oko 1 L na sat jer prebrzo pijenje može razrijediti natrij u krvi; pri naporu na vrućini okvirno 0,4 – 0,8 L na sat.`
         );
       } else {
-        setWaterAmount('3.5 – 4.5 Litara dnevno');
+        waterAmount = ('3.0 – 4.0 Litara dnevno');
 
-        setWaterText(
+        waterText = (
           `U toplim uvjetima, uz temperaturu od ${temperature
             .toFixed(1)
             .replace('.', ',')}°C i osjećaj od ${effectiveTemperature
@@ -291,23 +305,23 @@ function PrirodniUvjeti() {
       effectiveTemperature >= 8 &&
       effectiveTemperature < 27
     ) {
-      setSeason(
+      season = (
         `Proljetno / Jesensko razdoblje 🌤️ (${temperature
           .toFixed(1)
           .replace('.', ',')}°C)`
       );
 
-      setSeasonClass('is-primary is-light');
+      seasonClass = ('is-primary is-light');
 
-      setVitaminDAmount('1000 – 2000 IJ');
+      vitaminDAmount = ('1000 – 2000 IJ');
 
-      setVitaminDText(
+      vitaminDText = (
         'Sunčeva izloženost je promjenjiva pa se preporučuje umjeren dodatni unos vitamina D3, posebno tijekom oblačnih dana i slabijeg boravka na otvorenom.'
       );
 
-      setWaterAmount('2.5 – 3.5 Litara dnevno');
+      waterAmount = ('2.5 – 3.5 Litara dnevno');
 
-      setWaterText(
+      waterText = (
         `U umjerenim temperaturama od ${temperature
           .toFixed(1)
           .replace(
@@ -316,19 +330,19 @@ function PrirodniUvjeti() {
           )}°C potrebe za tekućinom su stabilnije. Tijelo gubi manje elektrolita nego ljeti, ali redovita hidracija i dalje ostaje važna.`
       );
     } else {
-      setSeason(
+      season = (
         `Zimsko razdoblje ❄️ (${temperature
           .toFixed(1)
           .replace('.', ',')}°C)`
       );
 
-      setSeasonClass('is-info is-light');
+      seasonClass = ('is-info is-light');
 
-      const winterLiters = ((savedWeight * 35) / 1000).toFixed(1);
+      const winterLiters = ((savedWeight * 30) / 1000).toFixed(1);
 
-      setWaterAmount(`${winterLiters} Litara dnevno`);
+      waterAmount = (`${winterLiters} Litara dnevno`);
 
-      setWaterText(
+      waterText = (
         `Zimi rjeđe osjećamo žeđ, ali tijelo i dalje gubi vodu kroz suhi zrak i grijane prostore. Tvoja zimska formula iznosi oko ${winterLiters} L.`
       );
 
@@ -338,19 +352,23 @@ function PrirodniUvjeti() {
         optimalD_IU = 1000;
       }
 
-      if (optimalD_IU > 5000) {
-        optimalD_IU = 5000;
+      if (optimalD_IU > 4000) {
+        optimalD_IU = 4000;
       }
 
-      setVitaminDAmount(
+      vitaminDAmount = (
         `${optimalD_IU} IJ — Prilagođeno tvojoj težini`
       );
 
-      setVitaminDText(
+      vitaminDText = (
         `Zimi je sunce preslabo za pouzdanu sintezu. S obzirom na tvoju masu od ${savedWeight} kg, prikazana je informativna zimska procjena.`
       );
     }
-  }, [temperature, apparentTemperature]);
+
+    return { season, seasonClass, waterAmount, waterText, vitaminDAmount, vitaminDText };
+  };
+
+  const { season, seasonClass, waterAmount, waterText, vitaminDAmount, vitaminDText } = getSeasonInfo();
 
   const handleManualTempChange = (e) => {
     setIsOfflineMode(true);
@@ -476,7 +494,7 @@ function PrirodniUvjeti() {
                     height: '24px',
                     fontSize: '0.75rem'
                   }}
-                  onClick={fetchWeather}
+                  onClick={refreshWeather}
                 >
                   Uživo 🔄
                 </button>
@@ -500,9 +518,6 @@ function PrirodniUvjeti() {
                     }}
                     value={manualTemp}
                     onChange={handleManualTempChange}
-                    onFocus={() => {
-                      setIsOfflineMode(true);
-                    }}
                   />
                 </div>
 

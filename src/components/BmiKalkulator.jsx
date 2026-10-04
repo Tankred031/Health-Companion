@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import storageService from '../services/healthCompanionService';
 
 function BmiCalculator() {
   const [weight, setWeight] = useState('');
@@ -20,7 +21,7 @@ function BmiCalculator() {
     // Dohvaćamo temperaturu za Osijek čim se kalkulator učita
   useEffect(() => {
     // Puna API putanja s koordinatama Osijeka: lat=45.5511, lon=18.6939
-    fetch('https://open-meteo.com')
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=45.5511&longitude=18.6939&current=temperature_2m')
       .then((res) => {
         if (!res.ok) throw new Error('Problem s API-jem');
         return res.json();
@@ -45,11 +46,11 @@ function BmiCalculator() {
       setBmi(bmiValue);
 
       // Spremanje podataka za druge stranice
-      localStorage.setItem('userBmi', bmiValue);
-      localStorage.setItem('userWeight', weight);
+      storageService.save('userBmi', bmiValue);
+      storageService.save('userWeight', weight);
 
-      const currentMonth = new Date().getMonth();
-      const isSummerCalendar = currentMonth >= 3 && currentMonth <= 8;
+      // Isti pragovi kao na stranici "Prirodni uvjeti": ljeto od 27 °C, tropski dani od 32 °C
+      const isWarm = liveTemp >= 27;
 
       // 1. IZRAČUN ZA VITAMIN C (10 mg po kg + opcija za pušače)
       let optimalC = Math.round(weight * 10);
@@ -59,27 +60,27 @@ function BmiCalculator() {
       setVitC(`${optimalC} mg`);
 
       // 2. KORIGIRANI IZRAČUN ZA VODU PREMA TEMPERATURI I TVOJIM SMJERNICAMA
-      if (liveTemp >= 25 || isSummerCalendar) {
-        if (liveTemp >= 30) {
-          // Tropski dani (30+ °C) - npr. za 128 kg prikazuje točan raspon 5-7 L
-          setWater('5.0 – 7.0 L');
+      if (isWarm) {
+        if (liveTemp >= 32) {
+          // Tropski dani (32+ °C)
+          setWater('4.0 – 5.0 L');
         } else {
           // Umjereno ljeto / proljeće
-          setWater('3.5 – 4.5 L');
+          setWater('3.0 – 4.0 L');
         }
       } else {
-        // Zimski uvjeti (Bazična formula: 35 ml po kg mase)
-        const winterLiters = ((weight * 35) / 1000).toFixed(1);
+        // Zimski uvjeti (Bazična formula: 30 ml po kg mase)
+        const winterLiters = ((weight * 30) / 1000).toFixed(1);
         setWater(`${winterLiters} L`);
       }
 
       // 3. IZRAČUN ZA VITAMIN D3 (Samo u IJ jedinicama)
       let optimalD_IU = Math.round(weight * 50);
-      if (liveTemp >= 25 || isSummerCalendar) {
+      if (isWarm) {
         optimalD_IU = 400; // Ljetni minimum
       } else {
         if (optimalD_IU < 1000) optimalD_IU = 1000;
-        if (optimalD_IU > 5000) optimalD_IU = 5000;
+        if (optimalD_IU > 4000) optimalD_IU = 4000; // gornja podnošljiva granica
       }
       setVitD(`${optimalD_IU} IJ`);
 

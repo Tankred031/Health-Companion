@@ -1,5 +1,5 @@
-import healthCompanionServiceLocalStorage from '/healthCompanionServiceLocalStorage';
-import healthCompanionServiceMemorija from '/healthCompanionServiceMemorija';
+import healthCompanionServiceLocalStorage from './healthCompanionServiceLocalStorage';
+import healthCompanionServiceMemorija from './healthCompanionServiceMemorija';
 import { DATA_SOURCE } from '../../constants';
 
 // Odabiremo aktivni spremnik na temelju onoga što je zapisano u konfiguraciji

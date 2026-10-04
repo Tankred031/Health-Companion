@@ -4,7 +4,6 @@ const healthCompanionServiceLocalStorage = {
     return { success: true };
   },
   get: (key) => {
-    const data = localStorage.getItem(key);
     return localStorage.getItem(key);
   },
   remove: (key) => {

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { RouteNames } from '../../constants'; 
 
@@ -61,7 +60,20 @@ function Home() {
               style={{ transition: 'all 0.3s ease', cursor: 'pointer', minHeight: '160px' }}
             >
               <h3 className="title is-5 mb-2 has-text-info">Tracker Kretanja</h3>
-              <p className="is-size-6 has-text-grey-dark">Uključi stvarni mobilni GPS i prati potrošnju kalorija duž osječke Promenade.</p>
+              <p className="is-size-6 has-text-grey-dark">Uključi mobilni GPS i prati prijeđenu udaljenost, korake i potrošnju kalorija.</p>
+            </div>
+          </Link>
+        </div>
+
+        {/* 5. KARTICA: Praćenje rezultata */}
+        <div className="column is-half">
+          <Link to={RouteNames.PRACENJE} style={{ textDecoration: 'none', display: 'block' }}>
+            <div 
+              className="box has-text-centered p-5 custom-hover-card"
+              style={{ transition: 'all 0.3s ease', cursor: 'pointer', minHeight: '160px' }}
+            >
+              <h3 className="title is-5 mb-2 has-text-danger">Praćenje rezultata</h3>
+              <p className="is-size-6 has-text-grey-dark">Bilježi težinu i unos kalorija te prati prosjek i promjenu kroz vrijeme.</p>
             </div>
           </Link>
         </div>

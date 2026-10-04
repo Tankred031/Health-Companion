@@ -1,17 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { RouteNames } from '../../constants';
-import healthCompanionServiceLocalStorage from '../services/healthCompanionServiceLocalStorage';
+import storageService from '../services/healthCompanionService';
 
 function Navbar() {
     const [isActive, setIsActive] = useState(false);
-    const [source, setSource] = useState('memorija');
-
-    // Pri učitavanju provjeravamo koji je trenutni način rada u servisu
-    useEffect(() => {
-        const trenutniIzbor = localStorage.getItem('dataSource') || 'memorija';
-        setSource(trenutniIzbor);
-    }, []);
+    // Trenutni način rada čitamo iz servisa
+    const [source, setSource] = useState(storageService.getTrenutniNacin());
 
     // Funkcija koja reagira na promjenu preklopnika
     const handleSourceChange = (e) => {
@@ -33,7 +28,7 @@ function Navbar() {
                 <button
                     className={`navbar-burger burger ${isActive ? 'is-active' : ''}`}
                     aria-label='menu'
-                    aria-expanded='false'
+                    aria-expanded={isActive}
                     onClick={() => setIsActive(!isActive)}
                 >
                     <span aria-hidden='true'></span>
