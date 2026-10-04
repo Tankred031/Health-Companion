@@ -1,13 +1,17 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import storageService from "../services/healthCompanionService";
 
 function MovementTracker() {
   // --- KORISNIČKI PODACI ---
-  const [userWeight, setUserWeight] = useState(103);
+  // Težina iz kalkulatora (ako postoji), inače zadanih 103 kg
+  const [userWeight] = useState(() => {
+    const parsedWeight = parseFloat(storageService.get("userWeight"));
+    return !Number.isNaN(parsedWeight) && parsedWeight > 0 ? parsedWeight : 103;
+  });
 
   // --- SUSTAV 1: PRIMARNA DNEVNA AKTIVNOST ---
   const [baseActivity, setBaseActivity] = useState("office-pc");
   const [workHours, setWorkHours] = useState(8);
-  const [baseCalories, setBaseCalories] = useState(0);
 
   // Određuje ulazi li gornji dio u ukupan zbroj
   const [includeBaseCalories, setIncludeBaseCalories] = useState(true);
@@ -23,53 +27,17 @@ function MovementTracker() {
   );
 
   const lastPositionRef = useRef(null);
+  const distanceRef = useRef(0);
   const watchIdRef = useRef(null);
 
-  // Učitavanje mase iz localStoragea
-  useEffect(() => {
-    const savedWeight = localStorage.getItem("userWeight");
-    const parsedWeight = parseFloat(savedWeight);
-
-    if (!Number.isNaN(parsedWeight) && parsedWeight > 0) {
-      setUserWeight(parsedWeight);
-    }
-  }, []);
-
-  // Izračun primarne aktivnosti
-  useEffect(() => {
-    if (baseActivity === "office-pc") {
-      const officeMET = 1.3;
-      const calculatedCalories = Math.floor(
-        officeMET * userWeight * workHours
-      );
-
-      setBaseCalories(calculatedCalories);
-      return;
-    }
-
-    if (baseActivity === "housework") {
-      const houseworkMET = 3.8;
-      const houseworkHours = 0.5;
-
-      const calculatedCalories = Math.floor(
-        houseworkMET * userWeight * houseworkHours
-      );
-
-      setBaseCalories(calculatedCalories);
-      return;
-    }
-
-    if (baseActivity === "lawnmowing") {
-      const lawnmowingMET = 6.5;
-      const lawnmowingHours = 20 / 60;
-
-      const calculatedCalories = Math.floor(
-        lawnmowingMET * userWeight * lawnmowingHours
-      );
-
-      setBaseCalories(calculatedCalories);
-    }
-  }, [baseActivity, workHours, userWeight]);
+  // Izračun primarne aktivnosti (MET × masa × sati)
+  const baseActivityMET = {
+    "office-pc": { met: 1.3, hours: workHours },
+    housework: { met: 3.8, hours: 0.5 },
+    lawnmowing: { met: 6.5, hours: 20 / 60 },
+  };
+  const { met, hours } = baseActivityMET[baseActivity];
+  const baseCalories = Math.floor(met * userWeight * hours);
 
   // Haversine formula za udaljenost između dvije GPS točke
   const calculateDistanceInKm = (lat1, lon1, lat2, lon2) => {
@@ -103,14 +71,6 @@ function MovementTracker() {
       lastPositionRef.current = null;
       return undefined;
     }
-
-    if (!("geolocation" in navigator)) {
-      alert("Ovaj uređaj ne podržava GPS praćenje.");
-      setIsGpsTracking(false);
-      return undefined;
-    }
-
-    setRouteNote("Tražim GPS signal... 🛰️");
 
     watchIdRef.current = navigator.geolocation.watchPosition(
       (position) => {
@@ -166,30 +126,21 @@ function MovementTracker() {
           return;
         }
 
-        setDistance((previousDistance) => {
-          const updatedDistance = Number(
-            (previousDistance + movedDistance).toFixed(3)
-          );
+        // Zbroj čuvamo u refu pa sva stanja postavljamo izvan updater funkcije
+        const updatedDistance = Number(
+          (distanceRef.current + movedDistance).toFixed(3)
+        );
+        distanceRef.current = updatedDistance;
 
-          const updatedSteps = Math.floor(
-            (updatedDistance * 1000) / 0.75
-          );
+        setDistance(updatedDistance);
+        setSteps(Math.floor((updatedDistance * 1000) / 0.75));
+        setGpsCalories(Math.floor(0.75 * userWeight * updatedDistance));
 
-          const updatedGpsCalories = Math.floor(
-            0.75 * userWeight * updatedDistance
-          );
-
-          setSteps(updatedSteps);
-          setGpsCalories(updatedGpsCalories);
-
-          setRouteNote(
-            `Praćenje je aktivno. Prijeđeno: ${updatedDistance.toFixed(
-              2
-            )} km. 🚶‍♂️`
-          );
-
-          return updatedDistance;
-        });
+        setRouteNote(
+          `Praćenje je aktivno. Prijeđeno: ${updatedDistance.toFixed(
+            2
+          )} km. 🚶‍♂️`
+        );
 
         lastPositionRef.current = {
           latitude,
@@ -232,6 +183,19 @@ function MovementTracker() {
   const totalCalories =
     gpsCalories + (includeBaseCalories ? baseCalories : 0);
 
+  const toggleGpsTracking = () => {
+    if (!isGpsTracking && !("geolocation" in navigator)) {
+      alert("Ovaj uređaj ne podržava GPS praćenje.");
+      return;
+    }
+
+    if (!isGpsTracking) {
+      setRouteNote("Tražim GPS signal... 🛰️");
+    }
+
+    setIsGpsTracking((previousValue) => !previousValue);
+  };
+
   const resetAllData = () => {
     if (watchIdRef.current !== null) {
       navigator.geolocation.clearWatch(watchIdRef.current);
@@ -239,6 +203,7 @@ function MovementTracker() {
     }
 
     setIsGpsTracking(false);
+    distanceRef.current = 0;
     setSteps(0);
     setDistance(0);
     setGpsCalories(0);
@@ -444,9 +409,7 @@ function MovementTracker() {
             className={`button is-medium is-fullwidth ${
               isGpsTracking ? "is-danger" : "is-success"
             }`}
-            onClick={() =>
-              setIsGpsTracking((previousValue) => !previousValue)
-            }
+            onClick={toggleGpsTracking}
           >
             {isGpsTracking
               ? "Zaustavi GPS praćenje"
@@ -482,9 +445,7 @@ function MovementTracker() {
               className={`button is-medium is-fullwidth ${
                 isGpsTracking ? "is-danger" : "is-success"
               }`}
-              onClick={() =>
-                setIsGpsTracking((previousValue) => !previousValue)
-              }
+              onClick={toggleGpsTracking}
               style={{
                 fontWeight: "600",
                 minHeight: "40px",

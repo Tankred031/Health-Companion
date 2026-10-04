@@ -61,8 +61,7 @@ into a dynamic and responsive user experience.
 ### User Experience
 
 * Responsive layout
-* Dynamic notifications
-* Offline fallback mode
+* Manual input mode when weather data is unavailable
 * Interactive UI updates
 * Contextual feedback system
 
@@ -110,7 +109,7 @@ Through this project I practiced:
 
 ## Deployment
 
-The application is deployed and publicly available using [Vercel](https://vercel.com/?utm_source=chatgpt.com).
+The application is deployed and publicly available using [Vercel](https://vercel.com/).
 
 This project was used to practice:
 

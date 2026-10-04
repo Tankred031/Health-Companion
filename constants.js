@@ -1,5 +1,5 @@
-// Čitamo iz pohrane ili postavljamo zadano na 'memorija' ako ništa još nije odabrano
-export const DATA_SOURCE = localStorage.getItem('dataSource') || 'memorija';
+// Čitamo iz pohrane ili postavljamo zadano na 'local' ako ništa još nije odabrano
+export const DATA_SOURCE = localStorage.getItem('dataSource') || 'local';
 
 export const RouteNames = {
     HOME: '/',

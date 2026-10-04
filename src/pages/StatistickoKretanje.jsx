@@ -1,23 +1,25 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import storageService from "../services/healthCompanionService";
+
+const STORAGE_KEY = "weightKcalHistory";
 
 function WeightKcalTracker() {
 
   const [weight, setWeight] = useState("");
   const [kcal, setKcal] = useState("");
-  const [entries, setEntries] = useState([]);
-
-  // učitaj spremljene podatke
-  useEffect(() => {
-    const saved = localStorage.getItem("weightKcalHistory");
-
-    if (saved) {
-      setEntries(JSON.parse(saved));
+  // učitaj spremljene podatke (jednom, pri prvom renderu)
+  const [entries, setEntries] = useState(() => {
+    try {
+      const saved = storageService.get(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
     }
-  }, []);
+  });
 
-  // spremi u localStorage
+  // spremi kod svake promjene
   useEffect(() => {
-    localStorage.setItem("weightKcalHistory", JSON.stringify(entries));
+    storageService.save(STORAGE_KEY, JSON.stringify(entries));
   }, [entries]);
 
   const addEntry = () => {
